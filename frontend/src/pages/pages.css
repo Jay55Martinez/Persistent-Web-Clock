@@ -1,0 +1,35 @@
+#background {
+  background: linear-gradient(to bottom, #42a5f5 0%, #2196f3 50%, #1e88e5 100%);
+}
+
+#card-container {
+  width: 100%;
+  max-width: 400px;
+  background-color: #1976d2;
+  border-radius: 20px;
+  color: #e3f2fd;
+}
+
+.head-padding {
+  margin-top: 30px;
+}
+
+.text-shadow {
+  text-shadow: 1px 2px 2px #64B5F6;
+}
+
+.pill-button {
+  width: 260px; /* Fixed width */
+  height: 45px; /* Optional for consistent height */
+  border: none;
+  border-radius: 999px; /* Makes it pill-shaped */
+  background-color: #1E88E5; /* Initial color */
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.pill-button:hover {
+  background-color: #0D47A1; /* Hover color */
+}

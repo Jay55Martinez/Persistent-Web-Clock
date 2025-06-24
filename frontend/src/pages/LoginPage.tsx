@@ -4,6 +4,8 @@ import { useAuth } from "../context/AuthContext";
 import { loginUser } from "../api/auth";
 // Icons
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+// Style
+import "./pages.css";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -26,50 +28,61 @@ const LoginPage = () => {
   };
 
   return (
-    <div>
-      <form onSubmit={handleSubmit} style={{ padding: "2rem" }}>
-        <h1>Login</h1>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          required
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <br />
-        <div style={{ position: "relative" }}>
-          <input
-            type={showPassword ? "text" : "password"}
-            placeholder="Password"
-            value={password}
-            required
-            onChange={(e) => setPassword(e.target.value)}
-            style={{ paddingRight: "2rem" }}
-          />
-          <button
-            type="button"
-            onMouseDown={() => setShowPassword(true)}
-            onMouseUp={() => setShowPassword(false)}
-            onMouseLeave={() => setShowPassword(false)} 
-            style={{
-              position: "absolute",
-              right: "0.5rem",
-              top: "50%",
-              transform: "translateY(-50%)",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            {showPassword ? <FaEyeSlash /> : <FaEye />}
-          </button>
+    <div
+      id="background"
+      className="d-flex justify-content-center align-items-center vh-100"
+    >
+      <div id="card-container" className="card p-5 shadow">
+        <div id="text-align" className="text-center">
+          <form onSubmit={handleSubmit}>
+            <h1 className="text-shadow">Tank Timer</h1>
+            <h4 className="text-shadow">Log in to Tank Timer</h4>
+            <input
+              id="information-input"
+              className="input-group mb-2 head-padding form-control shadow"
+              type="email"
+              placeholder="Email address*"
+              value={email}
+              required
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <br />
+            <div style={{ position: "relative" }}>
+              <input
+                id="information-input"
+                className="input-group mb-2 form-control shadow"
+                type={showPassword ? "text" : "password"}
+                placeholder="Password*"
+                value={password}
+                required
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <button
+                type="button"
+                onMouseDown={() => setShowPassword(true)}
+                onMouseUp={() => setShowPassword(false)}
+                onMouseLeave={() => setShowPassword(false)}
+                style={{
+                  position: "absolute",
+                  right: "0.5rem",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+            <br />
+            <button type="submit" className="pill-button">Login</button>
+          </form>
+          <p className="head-padding">
+            Don't have an account? <a href="/signup">Sign up</a>
+          </p>
         </div>
-        <br />
-        <button type="submit">Login</button>
-      </form>
-      <p>
-        Don't have an account? <a href="/signup">Sign up</a>
-      </p>
+      </div>
     </div>
   );
 };

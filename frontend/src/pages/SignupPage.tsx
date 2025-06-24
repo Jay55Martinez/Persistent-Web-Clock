@@ -85,80 +85,108 @@ const SignupPage = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ padding: "2rem" }}>
-      <h1>Sign Up</h1>
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        required
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <br />
-      <div style={{ position: "relative" }}>
-        <input
-          type={showPassword ? "text" : "password"}
-          placeholder="Password"
-          value={password}
-          required
-          onChange={(e) => handlePasswordChange(e.target.value)}
-          style={{ paddingRight: "2rem" }}
-        />
-        <button
-          type="button"
-          onMouseDown={() => setShowPassword(true)}
-          onMouseUp={() => setShowPassword(false)}
-          onMouseLeave={() => setShowPassword(false)}
-          style={{
-            position: "absolute",
-            right: "0.5rem",
-            top: "50%",
-            transform: "translateY(-50%)",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          {showPassword ? <FaEyeSlash /> : <FaEye />}
-        </button>
-      </div>
-      <br />
+    <div
+      id="background"
+      className="d-flex justify-content-center align-items-center vh-100"
+    >
+      <div id="card-container" className="card p-5 shadow">
+        <div id="text-align" className="text-center">
+          <form onSubmit={handleSubmit}>
+            <h1 className="text-shadow">Tank Timer</h1>
+            <h4 className="text-shadow">Sign up for Tank Timer</h4>
+            <input
+              id="information-input"
+              className="input-group mb-2 head-padding form-control shadow"
+              type="email"
+              placeholder="Email address*"
+              value={email}
+              required
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <br />
+            <div style={{ position: "relative" }}>
+              <input
+                id="information-input"
+                className="input-group mb-2 form-control shadow"
+                type={showPassword ? "text" : "password"}
+                placeholder="Password*"
+                value={password}
+                required
+                onChange={(e) => handlePasswordChange(e.target.value)}
+              />
+              <button
+                type="button"
+                onMouseDown={() => setShowPassword(true)}
+                onMouseUp={() => setShowPassword(false)}
+                onMouseLeave={() => setShowPassword(false)}
+                style={{
+                  position: "absolute",
+                  right: "0.5rem",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+            <br />
+            {/* Password requirments */}
+            {password != "" && (
+              <div style={{ fontSize: "0.9rem", marginTop: "0.5rem" }}>
+                <p
+                  style={{
+                    color: passwordValidations.length ? "green" : "red",
+                  }}
+                >
+                  At least 12 characters
+                </p>
+                <p
+                  style={{ color: passwordValidations.upper ? "green" : "red" }}
+                >
+                  At least 1 uppercase letter
+                </p>
+                <p
+                  style={{ color: passwordValidations.lower ? "green" : "red" }}
+                >
+                  At least 1 lowercase letter
+                </p>
+                <p
+                  style={{
+                    color: passwordValidations.number ? "green" : "red",
+                  }}
+                >
+                  At least 1 number
+                </p>
+                <p
+                  style={{
+                    color: passwordValidations.special ? "green" : "red",
+                  }}
+                >
+                  At least 1 special character
+                </p>
+              </div>
+            )}
 
-      {/* Password requirments */}
-      {password != "" && (
-        <div style={{ fontSize: "0.9rem", marginTop: "0.5rem" }}>
-          <p style={{ color: passwordValidations.length ? "green" : "red" }}>
-            At least 12 characters
-          </p>
-          <p style={{ color: passwordValidations.upper ? "green" : "red" }}>
-            At least 1 uppercase letter
-          </p>
-          <p style={{ color: passwordValidations.lower ? "green" : "red" }}>
-            At least 1 lowercase letter
-          </p>
-          <p style={{ color: passwordValidations.number ? "green" : "red" }}>
-            At least 1 number
-          </p>
-          <p style={{ color: passwordValidations.special ? "green" : "red" }}>
-            At least 1 special character
-          </p>
+            <button type="submit" disabled={loading} className="pill-button text-nowrap"> 
+              Create Account
+            </button>
+
+            {error && <p style={{ color: "red" }}>{error}</p>}
+            {success && (
+              <p style={{ color: "green" }}>Account created! Redirecting...</p>
+            )}
+            {loading && <p>Creating your account...</p>}
+
+            <p className="head-padding">
+              Already have an account? <a href="/">Login</a>
+            </p>
+          </form>
         </div>
-      )}
-
-      <button type="submit" disabled={loading}>
-        Create Account
-      </button>
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {success && (
-        <p style={{ color: "green" }}>Account created! Redirecting...</p>
-      )}
-      {loading && <p>Creating your account...</p>}
-
-      <p>
-        Already have an account? <a href="/">Login</a>
-      </p>
-    </form>
+      </div>
+    </div>
   );
 };
 
