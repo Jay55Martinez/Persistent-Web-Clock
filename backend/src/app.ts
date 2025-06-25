@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import authRoutes from './routes/auth.routes';
+import timerRoutes from './routes/timer.routes';
 
 dotenv.config();
 const app = express();
@@ -14,9 +15,6 @@ app.use(express.json());
 //   credentials: true,
 // }));
 app.use('/api/auth', authRoutes);
-
-mongoose.connect(process.env.MONGO_URI!)
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.error("Mongo error:", err));
+app.use('/api/timer', timerRoutes);
 
 export default app;
