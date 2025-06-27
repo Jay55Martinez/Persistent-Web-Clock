@@ -2,9 +2,86 @@
 import React from "react";
 import Navbar from "../components/Navbar";
 import FishTank from "../components/FishTank";
-import "./pages.css"; // assuming this contains your styles
+import {
+  startTimer,
+  pauseTimer,
+  resetTimer,
+  getTimerStatus,
+} from "../api/timer";
+import "./pages.css";
 
 const TimerPage = () => {
+  const [timer, setTimer] = React.useState(0); // in seconds
+  const [isRunning, setIsRunning] = React.useState(false);
+
+  // Poll every second to update UI
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      if (isRunning) {
+        setTimer((prev) => prev + 1);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isRunning]);
+
+  React.useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const data = await getTimerStatus();
+        if (data.isRunning && data.startTime) {
+          const start = new Date(data.startTime).getTime();
+          const now = Date.now();
+          const elapsed = Math.floor((now - start) / 1000) + data.totalElapsed;
+          setTimer(elapsed);
+          setIsRunning(true);
+        } else {
+          setTimer(data.totalElapsed || 0);
+          setIsRunning(false);
+        }
+      } catch (err) {
+        console.error("Error fetching timer status", err);
+      }
+    };
+
+    fetchStatus();
+  }, []);
+
+  const handleStart = async () => {
+    try {
+      const data = await startTimer();
+      setIsRunning(true);
+    } catch (err) {
+      console.error("Failed to start timer", err);
+    }
+  };
+
+  const handlePause = async () => {
+    try {
+      const data = await pauseTimer();
+      setIsRunning(false);
+      setTimer(data.totalElapsed); // updated value
+    } catch (err) {
+      console.error("Failed to pause timer", err);
+    }
+  };
+
+  const handleReset = async () => {
+    try {
+      const data = await resetTimer();
+      setIsRunning(false);
+      setTimer(0);
+    } catch (err) {
+      console.error("Failed to reset timer", err);
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const h = String(Math.floor(seconds / 3600)).padStart(2, "0");
+    const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
+    const s = String(seconds % 60).padStart(2, "0");
+    return `${h}:${m}:${s}`;
+  };
+
   return (
     <div>
       <Navbar />
@@ -43,17 +120,17 @@ const TimerPage = () => {
           </div>
 
           <div id="timer" className="display-5 my-3" aria-live="polite">
-            00:00
+            {formatTime(timer)}
           </div>
 
           <div className="btn-group" role="group">
-            <button type="button" id="start-button" className="btn btn-success">
+            <button type="button" id="start-button" className="btn btn-success" onClick={handleStart}>
               Start
             </button>
-            <button type="button" id="pause-button" className="btn btn-warning">
+            <button type="button" id="pause-button" className="btn btn-warning" onClick={handlePause}>
               Pause
             </button>
-            <button type="button" id="reset-button" className="btn btn-danger">
+            <button type="button" id="reset-button" className="btn btn-danger" onClick={handleReset}>
               Reset
             </button>
           </div>
