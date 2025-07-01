@@ -14,6 +14,7 @@ async function hasValidMXRecord(domain: string): Promise<boolean> {
   }
 }
 
+// TODO: Also add to the cookie if the user is successfully signed up
 export const signup = async (req: Request, res: Response) => {
   const { email, password } = req.body;
   const emailNormalized = email.toLowerCase();
@@ -50,7 +51,15 @@ export const signup = async (req: Request, res: Response) => {
       expiresIn: "7d",
     });
 
-    res.status(201).json({ token, user: { id: user._id, email: user.email } });
+    res
+      .cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      })
+      .status(201)
+      .json({ user: { id: user._id, email: user.email } });
   } catch (err) {
     res.status(500).json({ error: "Signup failed" });
   }
@@ -58,17 +67,42 @@ export const signup = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
-  const emailNormalized = email.toLowerCase();
+  const normalizedEmail = email.toLowerCase();
+
   try {
-    const user = await User.findOne({ email: emailNormalized });
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
+
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
-      expiresIn: "7d",
+      expiresIn: "7d"
     });
-    res.json({ token, user: { id: user._id, email: user.email } });
-  } catch (err) {
-    res.status(500).json({ error: "Login failed" });
+
+    res
+      .cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      })
+      .json({ user: { id: user._id, email: user.email } });
+  } catch (error) {
+    res.status(500).json({ error: 'Login failed' });
   }
+};
+
+export const logout = async (req: Request, res: Response) => {
+  res
+    .clearCookie('token')
+    .json({ message: 'Logged out successfully' });
+};
+
+export const verifyAuth = async (req: Request, res: Response) => {
+  // This endpoint uses the authenticateUser middleware
+  // If we reach here, the user is authenticated
+  res.json({ 
+    authenticated: true, 
+    user: { id: req.user!.id } 
+  });
 };

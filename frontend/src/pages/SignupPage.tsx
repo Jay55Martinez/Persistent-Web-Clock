@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { signupUser } from "../api/auth";
 import { useAuth } from "../context/AuthContext";
+import useAuthRedirect from "../hooks/useAuthRedirect";
 // Icons
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
@@ -21,6 +22,8 @@ const SignupPage = () => {
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+
+  useAuthRedirect();
 
   const handlePasswordChange = (value: string) => {
     setPassword(value);
@@ -69,8 +72,8 @@ const SignupPage = () => {
     try {
       const normalizedEmail = email.trim().toLowerCase();
       const data = await signupUser(normalizedEmail, password);
-      localStorage.setItem("token", data.token);
-      login();
+      // No need to store token in localStorage anymore - using cookies
+      login(data.user); // Pass user data to login function
       setSuccess(true);
       navigate("/timer");
     } catch (err: any) {
@@ -95,7 +98,7 @@ const SignupPage = () => {
             <h1 className="text-shadow">Tank Timer</h1>
             <h4 className="text-shadow">Sign up for Tank Timer</h4>
             <input
-              id="information-input"
+              id="information-input-email"
               className="input-group mb-2 head-padding form-control shadow"
               type="email"
               placeholder="Email address*"
@@ -106,7 +109,7 @@ const SignupPage = () => {
             <br />
             <div style={{ position: "relative" }}>
               <input
-                id="information-input"
+                id="information-input-password"
                 className="input-group mb-2 form-control shadow"
                 type={showPassword ? "text" : "password"}
                 placeholder="Password*"
@@ -181,7 +184,7 @@ const SignupPage = () => {
             {loading && <p>Creating your account...</p>}
 
             <p className="head-padding">
-              Already have an account? <a href="/">Login</a>
+              Already have an account? <a href="/login">Login</a>
             </p>
           </form>
         </div>

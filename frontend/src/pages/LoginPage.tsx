@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { loginUser } from "../api/auth";
+import useAuthRedirect from "../hooks/useAuthRedirect";
 // Icons
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 // Style
@@ -14,13 +15,15 @@ const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  useAuthRedirect();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const normalizedEmail = email.trim().toLowerCase(); // use normalizedEmail in API call instead of raw email
+      const normalizedEmail = email.trim().toLowerCase();
       const data = await loginUser(normalizedEmail, password);
-      localStorage.setItem("token", data.token); // Store JWT
-      login(); // update context
+      // No need to store token in localStorage anymore - using cookies
+      login(data.user); // Pass user data to login function
       navigate("/timer");
     } catch (err) {
       alert("Login failed. Check credentials.");
@@ -38,7 +41,7 @@ const LoginPage = () => {
             <h1 className="text-shadow">Tank Timer</h1>
             <h4 className="text-shadow">Log in to Tank Timer</h4>
             <input
-              id="information-input"
+              id="information-input-email"
               className="input-group mb-2 head-padding form-control shadow"
               type="email"
               placeholder="Email address*"
@@ -49,7 +52,7 @@ const LoginPage = () => {
             <br />
             <div style={{ position: "relative" }}>
               <input
-                id="information-input"
+                id="information-input-password"
                 className="input-group mb-2 form-control shadow"
                 type={showPassword ? "text" : "password"}
                 placeholder="Password*"
