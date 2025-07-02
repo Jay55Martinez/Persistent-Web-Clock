@@ -290,10 +290,12 @@ describe("getTimerStatus", () => {
   });
 
   it("should handle calculating elapsed time correctly", async () => {
+    const testStartTime = new Date(Date.now() - 5000);
+
     const mockTimer = {
       userId: "user123",
       isRunning: true,
-      startTime: new Date(Date.now() - 5000), // started 5 seconds ago
+      startTime: testStartTime, // started 5 seconds ago
       totalElapsed: 0,
     };
 
@@ -307,6 +309,7 @@ describe("getTimerStatus", () => {
       expect.objectContaining({
         isRunning: true,
         totalElapsed: 5,
+        startTime: testStartTime,
       })
     );
   });

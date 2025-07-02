@@ -2,6 +2,7 @@
 import { Request, Response } from "express";
 import Timer from "../models/timer.model";
 
+// BUG: if I send two startTimer requests then the timer will be restarted to the second timer start
 export const startTimer = async (req: Request, res: Response) => {
   if (!req.user) {
     return res.status(401).json({ message: "Unauthorized" });
@@ -83,8 +84,11 @@ export const getTimerStatus = async (req: Request, res: Response) => {
     }
 
     let totalTime = timer.totalElapsed;
+
+    // Make sure the timer is running and the timer has a start time
     if (timer.isRunning && timer.startTime) {
-      const now = new Date();
+      const now = new Date(Date.now());
+      // Add the time from the start
       totalTime += Math.floor(
         (now.getTime() - timer.startTime.getTime()) / 1000
       );
@@ -92,7 +96,7 @@ export const getTimerStatus = async (req: Request, res: Response) => {
 
     return res
       .status(200)
-      .json({ totalElapsed: totalTime, isRunning: timer.isRunning });
+      .json({ totalElapsed: totalTime, isRunning: timer.isRunning, startTime: timer.startTime });
   } catch (error) {
     return res.status(500).json({ error: "Failed to retrieve timer status" });
   }

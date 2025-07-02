@@ -29,10 +29,7 @@ const TimerPage = () => {
       try {
         const data = await getTimerStatus();
         if (data.isRunning && data.startTime) {
-          const start = new Date(data.startTime).getTime();
-          const now = Date.now();
-          const elapsed = Math.floor((now - start) / 1000) + data.totalElapsed;
-          setTimer(elapsed);
+          setTimer(data.totalElapsed);
           setIsRunning(true);
         } else {
           setTimer(data.totalElapsed || 0);
@@ -89,26 +86,26 @@ const TimerPage = () => {
       <main className="container py-4">
         <div className="row justify-content-end align-items-center">
           {/* Coin Counter (Left) */}
-          <section className="row col-auto me-3">
+          {/* <section className="row col-auto me-3">
             <label htmlFor="coin-counter" className="col fw-bold">
               Coins:
             </label>
             <div id="coin-counter" className="col fs-3">
               00
             </div>
-          </section>
+          </section> */}
 
           {/* Store Button (Right but closer) */}
-          <section className="col-auto text-start">
+          {/* <section className="col-auto text-start">
             <button type="button" id="store-button" className="btn btn-primary">
               Store
             </button>
-          </section>
+          </section> */}
         </div>
 
         {/* Timer Controls */}
         <section className="mb-4 text-center">
-          <div className="mb-2">
+          {/* <div className="mb-2">
             <select
               id="timer-selection"
               name="subject"
@@ -117,7 +114,7 @@ const TimerPage = () => {
               <option value="subject1">Subject 1</option>
               <option value="subject2">Subject 2</option>
             </select>
-          </div>
+          </div> */}
 
           <div id="timer" className="display-5 my-3" aria-live="polite">
             {formatTime(timer)}
@@ -137,9 +134,9 @@ const TimerPage = () => {
         </section>
 
         {/* FishTank Component */}
-        <section className="text-center">
+        {/* <section className="text-center">
           <FishTank />
-        </section>
+        </section> */}
       </main>
     </div>
   );
