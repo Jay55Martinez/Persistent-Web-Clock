@@ -11,13 +11,18 @@ export const startTimer = async (req: Request, res: Response) => {
   const userId = req.user.id;
 
   try {
-    const timer = await Timer.findOneAndUpdate(
-      { userId },
-      { startTime: new Date(), isRunning: true },
-      { upsert: true, new: true }
-    );
+    if (! req.body.isRunning) {
+      const timer = await Timer.findOneAndUpdate(
+        { userId },
+        { startTime: new Date(), isRunning: true },
+        { upsert: true, new: true }
+      );
 
-    return res.status(200).json(timer);
+      return res.status(200).json(timer);
+    }
+    else {
+      return res.status(204).json({ message: "Timer is already running"});
+    }; 
   } catch (error) {
     return res.status(500).json({ error: "Failed to start timer" });
   }
@@ -96,7 +101,11 @@ export const getTimerStatus = async (req: Request, res: Response) => {
 
     return res
       .status(200)
-      .json({ totalElapsed: totalTime, isRunning: timer.isRunning, startTime: timer.startTime });
+      .json({
+        totalElapsed: totalTime,
+        isRunning: timer.isRunning,
+        startTime: timer.startTime,
+      });
   } catch (error) {
     return res.status(500).json({ error: "Failed to retrieve timer status" });
   }

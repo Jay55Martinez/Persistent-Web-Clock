@@ -1,7 +1,7 @@
 import api from './axios';
 
-export const startTimer = async () => {
-  const response = await api.post('/timer/start');
+export const startTimer = async (isRunning: boolean) => {
+  const response = await api.post('/timer/start', {isRunning});
   return response.data;
 };
 

@@ -63,6 +63,37 @@ describe("startTimer", () => {
     expect(status).toHaveBeenCalledWith(500);
     expect(json).toHaveBeenCalledWith({ error: "Failed to start timer" });
   });
+
+  it("should not change startTime if timer is already running", async () => {
+    const originalStartTime = new Date(Date.now() - 5000);
+    const mockTimer = {
+      userId: "user123",
+      isRunning: true,
+      startTime: originalStartTime,
+      totalElapsed: 15,
+    };
+
+    // Simulate the timer already running in the DB
+    (Timer.findOneAndUpdate as jest.Mock).mockResolvedValue(mockTimer);
+
+    await startTimer(req as Request, res as Response);
+
+    // Ensure the DB was queried with isRunning: true (already running)
+    expect(Timer.findOneAndUpdate).toHaveBeenCalledWith(
+      { userId: "user123" },
+      expect.objectContaining({ isRunning: true }),
+      { upsert: true, new: true }
+    );
+
+    await startTimer(req as Request, res as Response);
+    // The returned timer should have the same startTime as before
+    expect(json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        startTime: originalStartTime,
+        isRunning: true,
+      })
+    );
+  });
 });
 
 // Test the pauseTimer function
