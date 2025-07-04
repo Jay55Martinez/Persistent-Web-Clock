@@ -3,6 +3,7 @@ import request from "supertest";
 import jwt from "jsonwebtoken";
 import app from "../src/app";
 import Timer from "../src/models/timer.model";
+import { isUint8Array } from "util/types";
 
 describe("Timer Integration Tests", () => {
   it("creates a new timer on POST /api/timer/start", async () => {
@@ -20,7 +21,7 @@ describe("Timer Integration Tests", () => {
     const res = await request(app)
       .post("/api/timer/start")
       .set("Authorization", `Bearer ${token}`)
-      .send();
+      .send({ isRunning: false });
 
     expect(res.status).toBe(200);
     expect(res.body.userId).toBe(mockUserId);
@@ -43,15 +44,12 @@ describe("Timer Pause Tests", () => {
       }
     );
 
-    // First, start the timer
-    const res1 = await request(app)
+    await request(app)
       .post("/api/timer/start")
       .set("Authorization", `Bearer ${token}`)
-      .send();
+      .send({ isRunning: false });
 
-    expect(res1.status).toBe(200);
-
-    // Wait for a second to ensure the timer has started
+    // wait one second
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const res = await request(app)
@@ -87,7 +85,7 @@ describe("Timer Reset Tests", () => {
     const res1 = await request(app)
       .post("/api/timer/start")
       .set("Authorization", `Bearer ${token}`)
-      .send();
+      .send( { isRunning: false } );
 
     expect(res1.status).toBe(200);
 
@@ -125,7 +123,7 @@ describe("Timer Status Tests", () => {
     await request(app)
       .post("/api/timer/start")
       .set("Authorization", `Bearer ${token}`)
-      .send();
+      .send( { isUint8Array: true});
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -152,9 +150,14 @@ describe("Timer Status Tests", () => {
     );
 
     await request(app)
-      .post("/api/timer/start")
+      .post("/api/timer/reset")
       .set("Authorization", `Bearer ${token}`)
       .send();
+
+    await request(app)
+      .post("/api/timer/start")
+      .set("Authorization", `Bearer ${token}`)
+      .send( { isRunning: false });
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -173,5 +176,28 @@ describe("Timer Status Tests", () => {
     expect(res.status).toBe(200);
     expect(res.body.isRunning).toBe(false);
     expect(res.body.totalElapsed).toBeGreaterThanOrEqual(1);
+  });
+});
+
+  describe("Timer Reset Tests", () => {
+    it("should reset the timer and return status", async () => {
+      // Create a valid JWT token for testing
+      const mockUserId = "64abc1234567890abcdef123";
+      const token = jwt.sign(
+      { userId: mockUserId },
+      process.env.JWT_SECRET || "test-secret",
+      {
+        expiresIn: "1h",
+      }
+    );
+
+    const res = await request(app)
+      .post("/api/timer/reset")
+      .set("Authorization", `Bearer ${token}`)
+      .send();
+
+    expect(res.status).toBe(200);
+    expect(res.body.totalElapsed).toBe(0);
+    expect(res.body.isRunning).toBe(false);
   });
 });

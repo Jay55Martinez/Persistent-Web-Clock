@@ -30,6 +30,7 @@ describe("startTimer", () => {
 
   it("should return 401 if user is not authenticated", async () => {
     req.user = undefined;
+    req.body = { isRunning: true }; // Simulate a request body
     await startTimer(req as Request, res as Response);
     expect(status).toHaveBeenCalledWith(401);
     expect(json).toHaveBeenCalledWith({ message: "Unauthorized" });
@@ -38,11 +39,12 @@ describe("startTimer", () => {
   it("should create or update a timer", async () => {
     const mockTimer = {
       userId: "user123",
-      isRunning: true,
+      isRunning: false,
       startTime: new Date(),
     };
     (Timer.findOneAndUpdate as jest.Mock).mockResolvedValue(mockTimer);
 
+    req.body = { isRunning: false }; // Simulate a request body
     await startTimer(req as Request, res as Response);
 
     expect(Timer.findOneAndUpdate).toHaveBeenCalledWith(
@@ -72,27 +74,21 @@ describe("startTimer", () => {
       startTime: originalStartTime,
       totalElapsed: 15,
     };
+    // adding that the timer is already running
+    req.body = { isRunning: true };
 
     // Simulate the timer already running in the DB
     (Timer.findOneAndUpdate as jest.Mock).mockResolvedValue(mockTimer);
 
     await startTimer(req as Request, res as Response);
 
-    // Ensure the DB was queried with isRunning: true (already running)
-    expect(Timer.findOneAndUpdate).toHaveBeenCalledWith(
-      { userId: "user123" },
-      expect.objectContaining({ isRunning: true }),
-      { upsert: true, new: true }
-    );
-
-    await startTimer(req as Request, res as Response);
     // The returned timer should have the same startTime as before
     expect(json).toHaveBeenCalledWith(
-      expect.objectContaining({
-        startTime: originalStartTime,
-        isRunning: true,
-      })
+      {
+        message: "Timer is already running"
+      }
     );
+    expect(status).toHaveBeenCalledWith(204);
   });
 });
 
@@ -191,19 +187,23 @@ describe("resetTimer", () => {
   it("should should start a timer and then reset it", async () => {
     const mockTimer = {
       userId: "user123",
-      isRunning: true,
+      isRunning: false,
       startTime: new Date(),
       totalElapsed: 10,
     };
+    req.body = { isRunning : false };
+
     (Timer.findOneAndUpdate as jest.Mock).mockResolvedValue(mockTimer);
 
     await startTimer(req as Request, res as Response);
 
-    expect(Timer.findOneAndUpdate).toHaveBeenCalledWith(
-      { userId: "user123" },
-      expect.objectContaining({ isRunning: true }),
-      { upsert: true, new: true }
-    );
+    expect(json).toHaveBeenCalledWith({
+      isRunning: false,
+      startTime: new Date(),
+      totalElapsed: 10,
+      userId: "user123",
+    });
+
     expect(status).toHaveBeenCalledWith(200);
     expect(json).toHaveBeenCalledWith(mockTimer);
 

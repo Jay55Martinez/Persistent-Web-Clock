@@ -45,7 +45,7 @@ const TimerPage = () => {
 
   const handleStart = async () => {
     try {
-      const data = await startTimer();
+      const data = await startTimer(isRunning);
       setIsRunning(true);
     } catch (err) {
       console.error("Failed to start timer", err);
