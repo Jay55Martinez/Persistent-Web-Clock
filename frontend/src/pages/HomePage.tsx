@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import Navbar from "../components/Navbar";
+import './pages.css'
 // import useAuthRedirect from "../hooks/useAuthRedirect"; 
 
 const HomePage = () => {

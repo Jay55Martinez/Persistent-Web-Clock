@@ -1,11 +1,16 @@
 import React from 'react';
 import { logoutUser } from '../api/auth';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+// Styling 
+import './navbar.css';
+
 // Navbar component - Used for navigating to different pages
 const Navbar = () => {
   const { isLoggedIn, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isOnTimerPage = location.pathname === "/timer";
 
   const handleLogout = async () => {
     try {
@@ -21,13 +26,23 @@ const Navbar = () => {
     navigate('/login');
   };
 
+  const navigateTimerOrHome = async () => {
+    navigate(isOnTimerPage ? '/' : '/timer');
+  };
+
   return (
-    <nav style={{ padding: '1rem', backgroundColor: '#eee' }}>
-      {isLoggedIn ? (
-        <button onClick={handleLogout}>Logout</button>
-      ) : (
-        <button onClick={handleLogin}>Login</button>
-      )}
+    <nav className='navbar navbar-expand-lg background'>
+      <div id="navbar-elements" className="container-fluid">
+        <a className="logo-text" style={{ paddingLeft: 15 }} href="/" >Tank Timer</a>
+        <div id="button-container" className="d-flex gap-3" style={{ paddingRight: 15}}>
+          <button onClick={navigateTimerOrHome} className='pill-button'>{isOnTimerPage ? "Home" : "Timer"}</button>
+          {isLoggedIn ? (
+            <button onClick={handleLogout} className='pill-button'>Logout</button>
+          ) : (
+            <button onClick={handleLogin} className='pill-button'>Login</button>
+          )}
+        </div>
+      </div>
     </nav>
   );
 };
