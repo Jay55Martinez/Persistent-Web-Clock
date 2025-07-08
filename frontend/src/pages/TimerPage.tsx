@@ -1,7 +1,6 @@
 // src/pages/TimerPage.tsx
 import React from "react";
 import Navbar from "../components/Navbar";
-import FishTank from "../components/FishTank";
 import {
   startTimer,
   pauseTimer,
@@ -11,24 +10,33 @@ import {
 import "./pages.css";
 
 const TimerPage = () => {
+  const [startTime, setStartTime] = React.useState(new Date())
   const [timer, setTimer] = React.useState(0); // in seconds
   const [isRunning, setIsRunning] = React.useState(false);
 
   // Poll every second to update UI
   React.useEffect(() => {
     const interval = setInterval(() => {
-      if (isRunning) {
-        setTimer((prev) => prev + 1);
+      if (isRunning && startTime) {
+        // BUG:
+        /*
+        This calculates the time current time and works well when I come back to the page. Ensuring that The timer is accurate.
+        However, if I pause the timer and then come back to the page, it will not update the timer correctly.
+        This is because the startTime is not updated when the timer is paused
+        and the timer is not updated when the timer is paused.
+        */
+        setTimer(Math.floor((new Date().getTime() - startTime.getTime()) / 1000));
       }
-    }, 1000);
+    }, 500);
     return () => clearInterval(interval);
-  }, [isRunning]);
+  }, [isRunning, startTime]);
 
   React.useEffect(() => {
     const fetchStatus = async () => {
       try {
         const data = await getTimerStatus();
         if (data.isRunning && data.startTime) {
+          setStartTime(new Date(data.startTime));
           setTimer(data.totalElapsed);
           setIsRunning(true);
         } else {
@@ -82,7 +90,6 @@ const TimerPage = () => {
   return (
     <div>
       <Navbar />
-
       <main className="container py-4">
         <div className="row justify-content-end align-items-center">
           {/* Coin Counter (Left) */}

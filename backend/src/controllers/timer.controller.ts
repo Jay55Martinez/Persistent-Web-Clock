@@ -2,7 +2,6 @@
 import { Request, Response } from "express";
 import Timer from "../models/timer.model";
 
-// BUG: if I send two startTimer requests then the timer will be restarted to the second timer start
 export const startTimer = async (req: Request, res: Response) => {
   if (!req.user) {
     return res.status(401).json({ message: "Unauthorized" });

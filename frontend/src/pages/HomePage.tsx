@@ -4,10 +4,6 @@ import './pages.css'
 // import useAuthRedirect from "../hooks/useAuthRedirect"; 
 
 const HomePage = () => {
-  // useAuthRedirect();
-  useEffect(() => {
-    console.log("Home page loaded");
-  }, []);
   return (
     <div>
       <Navbar />
