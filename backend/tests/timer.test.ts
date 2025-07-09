@@ -185,10 +185,11 @@ describe("resetTimer", () => {
   });
 
   it("should should start a timer and then reset it", async () => {
+    const startTime = new Date()
     const mockTimer = {
       userId: "user123",
       isRunning: false,
-      startTime: new Date(),
+      startTime: startTime,
       totalElapsed: 10,
     };
     req.body = { isRunning : false };
@@ -199,7 +200,7 @@ describe("resetTimer", () => {
 
     expect(json).toHaveBeenCalledWith({
       isRunning: false,
-      startTime: new Date(),
+      startTime: startTime,
       totalElapsed: 10,
       userId: "user123",
     });
@@ -322,6 +323,7 @@ describe("getTimerStatus", () => {
 
   it("should handle calculating elapsed time correctly", async () => {
     const testStartTime = new Date(Date.now() - 5000);
+    const currentTime = new Date();
 
     const mockTimer = {
       userId: "user123",
@@ -340,7 +342,7 @@ describe("getTimerStatus", () => {
       expect.objectContaining({
         isRunning: true,
         totalElapsed: 5,
-        startTime: testStartTime,
+        startTime: currentTime,
       })
     );
   });

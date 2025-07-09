@@ -10,38 +10,40 @@ import {
 import "./pages.css";
 
 const TimerPage = () => {
-  const [startTime, setStartTime] = React.useState(new Date())
-  const [timer, setTimer] = React.useState(0); // in seconds
+  const [startTime, setStartTime] = React.useState<Date | null>(null);
+  const [totalElapsed, setTotalElapsed] = React.useState(0);
   const [isRunning, setIsRunning] = React.useState(false);
+  const [displayedTime, setDisplayedTime] = React.useState(0);
 
   // Poll every second to update UI
   React.useEffect(() => {
     const interval = setInterval(() => {
       if (isRunning && startTime) {
-        // BUG:
-        /*
-        This calculates the time current time and works well when I come back to the page. Ensuring that The timer is accurate.
-        However, if I pause the timer and then come back to the page, it will not update the timer correctly.
-        This is because the startTime is not updated when the timer is paused
-        and the timer is not updated when the timer is paused.
-        */
-        setTimer(Math.floor((new Date().getTime() - startTime.getTime()) / 1000));
+        const now = Date.now();
+        const elapsed = Math.floor((now - new Date(startTime).getTime()) / 1000);
+        setDisplayedTime(totalElapsed + elapsed);
+      } else {
+        setDisplayedTime(totalElapsed);
       }
     }, 500);
     return () => clearInterval(interval);
-  }, [isRunning, startTime]);
+  }, [isRunning, startTime, totalElapsed]);
 
   React.useEffect(() => {
     const fetchStatus = async () => {
       try {
         const data = await getTimerStatus();
+        setIsRunning(data.isRunning);
+        setStartTime(data.startTime ? new Date(data.startTime) : null);
+        setTotalElapsed(data.totalElapsed || 0);
+
+        // Set displayedTime immediately to avoid UI jump
         if (data.isRunning && data.startTime) {
-          setStartTime(new Date(data.startTime));
-          setTimer(data.totalElapsed);
-          setIsRunning(true);
+          const now = Date.now();
+          const elapsed = Math.floor((now - new Date(data.startTime).getTime()) / 1000);
+          setDisplayedTime((data.totalElapsed || 0) + elapsed);
         } else {
-          setTimer(data.totalElapsed || 0);
-          setIsRunning(false);
+          setDisplayedTime(data.totalElapsed || 0);
         }
       } catch (err) {
         console.error("Error fetching timer status", err);
@@ -53,8 +55,20 @@ const TimerPage = () => {
 
   const handleStart = async () => {
     try {
+      // If already running, just return
+      if (isRunning) {
+        return;
+      }
+
+      // Send request to start timer if the timer is not running
       const data = await startTimer(isRunning);
-      setIsRunning(true);
+
+      // If the timer was successfully started, update state
+      if (data) {
+        setIsRunning(true);
+        setStartTime(new Date(data.startTime));
+        setTotalElapsed(data.totalElapsed || 0);
+      };
     } catch (err) {
       console.error("Failed to start timer", err);
     }
@@ -64,7 +78,8 @@ const TimerPage = () => {
     try {
       const data = await pauseTimer();
       setIsRunning(false);
-      setTimer(data.totalElapsed); // updated value
+      setTotalElapsed(data.totalElapsed || 0);
+      setStartTime(null); // null since a start time will be recieved on next start
     } catch (err) {
       console.error("Failed to pause timer", err);
     }
@@ -74,7 +89,8 @@ const TimerPage = () => {
     try {
       const data = await resetTimer();
       setIsRunning(false);
-      setTimer(0);
+      setTotalElapsed(0);
+      setStartTime(null);
     } catch (err) {
       console.error("Failed to reset timer", err);
     }
@@ -124,7 +140,7 @@ const TimerPage = () => {
           </div> */}
 
           <div id="timer" className="display-5 my-3" aria-live="polite">
-            {formatTime(timer)}
+            {formatTime(displayedTime)}
           </div>
 
           <div className="btn-group" role="group">
