@@ -7,6 +7,8 @@ import {
   resetTimer,
   getTimerStatus,
 } from "../api/timer";
+import socket from "../utils/socket";
+// styling 
 import "./pages.css";
 
 const TimerPage = () => {
@@ -87,7 +89,7 @@ const TimerPage = () => {
 
   const handleReset = async () => {
     try {
-      const data = await resetTimer();
+      await resetTimer();
       setIsRunning(false);
       setTotalElapsed(0);
       setStartTime(null);
@@ -102,6 +104,40 @@ const TimerPage = () => {
     const s = String(seconds % 60).padStart(2, "0");
     return `${h}:${m}:${s}`;
   };
+
+  React.useEffect(() => {
+    socket.on("timer:paused", (data) => {
+      console.log("Timer paused", data);
+      // update state to reflect pause
+      setIsRunning(false);
+      setTotalElapsed(data.totalElapsed || 0);
+      setStartTime(null); // null since a start time will be recieved on next start
+    });
+
+    socket.on("timer:started", (data) => {
+      console.log("Timer started", data);
+      // update state to reflect start
+      if (data) {
+        setIsRunning(true);
+        setStartTime(new Date(data.startTime));
+        setTotalElapsed(data.totalElapsed || 0);
+      }
+    });
+
+    socket.on("timer:reset", (data) => {
+      console.log("Timer reset", data);
+      // update state to reset timer
+      setIsRunning(false);
+      setTotalElapsed(0);
+      setStartTime(null);
+    });
+
+    return () => {
+      socket.off("timer:paused");
+      socket.off("timer:started");
+      socket.off("timer:reset");
+    };
+  }, []);
 
   return (
     <div>

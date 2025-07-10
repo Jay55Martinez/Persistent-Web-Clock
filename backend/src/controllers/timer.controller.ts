@@ -25,6 +25,10 @@ export const startTimer = async (req: Request, res: Response) => {
         { upsert: true, new: true }
       );
 
+      // Emit socket event
+      const io = req.app.get('io');
+      io?.emit('timer:started', timer);
+
       return res.status(200).json(timer);
     } else {
       return res.status(204).json({ message: "Timer is already running" });
@@ -63,6 +67,10 @@ export const pauseTimer = async (req: Request, res: Response) => {
     timer.startTime = null;
     await timer.save();
 
+    // Emit socket event
+    const io = req.app.get('io');
+    io?.emit('timer:paused', timer);
+
     return res.status(200).json(timer);
   } catch (error) {
     return res.status(500).json({ error: "Failed to pause timer" });
@@ -88,6 +96,11 @@ export const resetTimer = async (req: Request, res: Response) => {
       { startTime: null, isRunning: false, totalElapsed: 0 },
       { new: true, upsert: true }
     );
+
+    // Emit socket event
+    const io = req.app.get('io');
+    io?.emit('timer:reset', timer);
+
     return res.status(200).json(timer);
   } catch (error) {
     return res.status(500).json({ error: "Failed to reset timer" });

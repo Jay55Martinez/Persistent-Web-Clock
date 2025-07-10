@@ -9,10 +9,13 @@ import Timer from "../src/models/timer.model";
 import { Request, Response } from "express";
 
 jest.mock("../src/models/timer.model");
+jest.mock('../src/server', () => ({
+  io: { emit: jest.fn() }
+}));
 
 // Test the startTimer function
 describe("startTimer", () => {
-  let req: Partial<Request>;
+  let req: any;
   let res: Partial<Response>;
   let json = jest.fn();
   let status = jest.fn().mockReturnThis();
@@ -20,6 +23,8 @@ describe("startTimer", () => {
   beforeEach(() => {
     req = {
       user: { id: "user123" },
+      // stub Express app.get('io') for socket emit
+      app: { get: jest.fn().mockReturnValue({ emit: jest.fn() }) },
     };
     res = {
       json,
@@ -94,7 +99,7 @@ describe("startTimer", () => {
 
 // Test the pauseTimer function
 describe("pauseTimer", () => {
-  let req: Partial<Request>;
+  let req: any;
   let res: Partial<Response>;
   let json = jest.fn();
   let status = jest.fn().mockReturnThis();
@@ -102,6 +107,8 @@ describe("pauseTimer", () => {
   beforeEach(() => {
     req = {
       user: { id: "user123" },
+      // stub Express app.get('io') for socket emit
+      app: { get: jest.fn().mockReturnValue({ emit: jest.fn() }) },
     };
     res = {
       json,
@@ -168,7 +175,7 @@ describe("pauseTimer", () => {
 // Test the resetTimer function
 // Start a timer and then reset it
 describe("resetTimer", () => {
-  let req: Partial<Request>;
+  let req: any;
   let res: Partial<Response>;
   let json = jest.fn();
   let status = jest.fn().mockReturnThis();
@@ -176,6 +183,8 @@ describe("resetTimer", () => {
   beforeEach(() => {
     req = {
       user: { id: "user123" },
+      // stub Express app.get('io') for socket emit
+      app: { get: jest.fn().mockReturnValue({ emit: jest.fn() }) },
     };
     res = {
       json,
@@ -240,7 +249,7 @@ need to test:
 */
 // Test the getTimerStatus funtion TEST IS FAILING
 describe("getTimerStatus", () => {
-  let req: Partial<Request>;
+  let req: any;
   let res: Partial<Response>;
   let json: jest.Mock;
   let status: jest.Mock;
@@ -248,6 +257,8 @@ describe("getTimerStatus", () => {
   beforeEach(() => {
     req = {
       user: { id: "user123" },
+      // stub Express app.get('io') for socket emit
+      app: { get: jest.fn().mockReturnValue({ emit: jest.fn() }) },
     };
     json = jest.fn();
     status = jest.fn().mockReturnThis();
