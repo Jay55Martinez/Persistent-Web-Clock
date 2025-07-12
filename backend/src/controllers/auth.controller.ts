@@ -55,7 +55,7 @@ export const signup = async (req: Request, res: Response) => {
       .cookie('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'none', // allow cross-site on different ports
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       })
       .status(201)

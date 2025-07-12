@@ -3,7 +3,6 @@ import request from "supertest";
 import jwt from "jsonwebtoken";
 import app from "../src/app";
 import Timer from "../src/models/timer.model";
-import { isUint8Array } from "util/types";
 
 describe("Timer Integration Tests", () => {
   it("creates a new timer on POST /api/timer/start", async () => {

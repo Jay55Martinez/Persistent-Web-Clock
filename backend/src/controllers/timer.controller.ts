@@ -25,9 +25,9 @@ export const startTimer = async (req: Request, res: Response) => {
         { upsert: true, new: true }
       );
 
-      // Emit socket event
+      // Emit socket event to user-specific room
       const io = req.app.get('io');
-      io?.emit('timer:started', timer);
+      io?.to(userId).emit('timer:started', timer);
 
       return res.status(200).json(timer);
     } else {
@@ -67,9 +67,9 @@ export const pauseTimer = async (req: Request, res: Response) => {
     timer.startTime = null;
     await timer.save();
 
-    // Emit socket event
+    // Emit socket event to user-specific room
     const io = req.app.get('io');
-    io?.emit('timer:paused', timer);
+    io?.to(userId).emit('timer:paused', timer);
 
     return res.status(200).json(timer);
   } catch (error) {
@@ -97,9 +97,9 @@ export const resetTimer = async (req: Request, res: Response) => {
       { new: true, upsert: true }
     );
 
-    // Emit socket event
+    // Emit socket event to user-specific room
     const io = req.app.get('io');
-    io?.emit('timer:reset', timer);
+    io?.to(userId).emit('timer:reset', timer);
 
     return res.status(200).json(timer);
   } catch (error) {

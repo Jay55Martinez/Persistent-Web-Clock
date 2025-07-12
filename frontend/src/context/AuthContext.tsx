@@ -1,5 +1,4 @@
 // AuthProvider Login and Logout
-
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import api from '../api/axios';
@@ -30,6 +29,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await api.get('/auth/verify');
       setIsLoggedIn(true);
       setUser(response.data.user);
+
+      // Persist user ID for socket connection
+      sessionStorage.setItem('userId', response.data.user.id);
       setAuthLoading(false);
       return true;
     } catch (error) {
@@ -43,6 +45,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = (userData: User) => {
     setIsLoggedIn(true);
     setUser(userData);
+
+    // Persist userId for socket and other purposes
+    sessionStorage.setItem('userId', userData.id);
   };
 
   const logout = async () => {
@@ -53,6 +58,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsLoggedIn(false);
       setUser(null);
+
+      // Clear persisted userId
+      sessionStorage.removeItem('userId');
     }
   };
 
