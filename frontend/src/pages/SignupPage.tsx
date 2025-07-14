@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { signupUser } from "../api/auth";
 import { useAuth } from "../context/AuthContext";
 import useAuthRedirect from "../hooks/useAuthRedirect";
+import { connectSocket } from "../utils/socket";
 // Icons
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
@@ -75,6 +76,7 @@ const SignupPage = () => {
       // No need to store token in localStorage anymore - using cookies
       login(data.user); // Pass user data to login function
       setSuccess(true);
+      connectSocket(); // Connect the socket
       navigate("/timer");
     } catch (err: any) {
       if (err.response?.status === 409) {

@@ -1,7 +1,7 @@
-import React from 'react';
 import { logoutUser } from '../api/auth';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import {disconnectSocket } from "../utils/socket";
 // Styling 
 import './navbar.css';
 
@@ -15,6 +15,7 @@ const Navbar = () => {
   const handleLogout = async () => {
     try {
       await logoutUser(); // Call API to clear server-side cookie
+      disconnectSocket(); // Disconnect the socket
     } catch (error) {
       console.error('Logout API call failed:', error);
     }

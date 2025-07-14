@@ -35,8 +35,18 @@ io.on('connection', (socket) => {
   } else {
     console.warn('No userId provided in socket handshake auth');
   }
-});
 
+  socket.on('disconnect', (reason) => {
+    const userId = socket.handshake.auth?.userId;
+    if (userId) {
+      socket.leave(userId);
+      console.log(`User ${userId} disconnected and left room. Reason: ${reason}`);
+    } else {
+      console.warn('No userId provided in socket handshake auth on disconnect');
+    }
+  });
+});
+ 
 
 // Start server
 server.listen(PORT, () => {
@@ -49,4 +59,4 @@ mongoose.connect(process.env.MONGO_URI!)
   .catch((err) => console.error('Mongo error:', err));
 
 // Export the io instance so controllers can use it
-export { io };
+export { io }; 
