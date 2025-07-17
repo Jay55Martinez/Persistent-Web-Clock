@@ -15,11 +15,14 @@ const Navbar = () => {
   const handleLogout = async () => {
     try {
       await logoutUser(); // Call API to clear server-side cookie
-      disconnectSocket(); // Disconnect the socket
+      sessionStorage.removeItem('userId');
     } catch (error) {
       console.error('Logout API call failed:', error);
     }
     logout(); // Clear client-side state
+    // wait some time
+    disconnectSocket();
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1000ms
     navigate('/');
   };
 

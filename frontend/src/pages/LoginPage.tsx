@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { loginUser } from "../api/auth";
 import useAuthRedirect from "../hooks/useAuthRedirect";
-import { connectSocket } from "../utils/socket";
+import { connectSocket, disconnectSocket } from "../utils/socket";
 // Icons
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 // Style
@@ -25,7 +25,9 @@ const LoginPage = () => {
       const data = await loginUser(normalizedEmail, password);
       // No need to store token in localStorage anymore - using cookies
       login(data.user); // Pass user data to login function
-      connectSocket(); // Connect the socket
+      disconnectSocket();
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1000ms
+      connectSocket(data.user.id); // Connect the socket
       navigate("/timer");
     } catch (err) {
       alert("Login failed. Check credentials.");
