@@ -59,9 +59,7 @@ export const pauseTimer = async (req: Request, res: Response) => {
     }
 
     const now = new Date();
-    const elapsed = Math.floor(
-      (now.getTime() - timer.startTime.getTime()) / 1000
-    );
+    const elapsed = (now.getTime() - timer.startTime.getTime()) / 1000;
     timer.totalElapsed += elapsed;
     timer.isRunning = false;
     timer.startTime = null;
@@ -133,10 +131,10 @@ export const getTimerStatus = async (req: Request, res: Response) => {
     // Make sure the timer is running and the timer has a start time
     if (timer.isRunning && timer.startTime) {
       // Add the time from the start
-      totalTime += Math.floor(
-        (now.getTime() - timer.startTime.getTime()) / 1000
-      );
+      totalTime += (now.getTime() - timer.startTime.getTime()) / 1000;
     }
+    const io = req.app.get('io');
+    io?.to(userId).emit('timer:status', timer);
 
     return res
       .status(200)

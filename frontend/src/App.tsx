@@ -4,13 +4,13 @@ import TimerPage from "./pages/TimerPage";
 import SignupPage from "./pages/SignupPage";
 import HomePage from "./pages/HomePage";
 import { useAuth } from "./context/AuthContext";
+import type { JSX } from "react";
 
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { isLoggedIn, authLoading } = useAuth();
   if (authLoading)
     {
-      console.log("Auth is loading");
       return <div>Loading...</div>;
     }
   return isLoggedIn ? children : <Navigate to="/" />;

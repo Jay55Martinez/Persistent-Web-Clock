@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import {
   startTimer,
@@ -7,7 +7,7 @@ import {
   getTimerStatus,
 } from "../api/timer";
 import socket, { connectSocket, disconnectSocket } from "../utils/socket";
-// styling 
+// styling
 import "./pages.css";
 
 const TimerPage = () => {
@@ -21,16 +21,17 @@ const TimerPage = () => {
     const interval = setInterval(() => {
       if (isRunning && startTime) {
         const now = Date.now();
-        const elapsed = Math.floor((now - new Date(startTime).getTime()) / 1000);
+        const elapsed = (now - new Date(startTime).getTime()) / 1000;
+
         setDisplayedTime(totalElapsed + elapsed);
       } else {
         setDisplayedTime(totalElapsed);
       }
-    }, 500);
+    }, 50);
     return () => clearInterval(interval);
   }, [isRunning, startTime, totalElapsed]);
 
-  // Fetch initial timer status
+  // Fetch initial timer status and handles fetching current time on webpage refresh
   useEffect(() => {
     const fetchStatus = async () => {
       try {
@@ -42,7 +43,8 @@ const TimerPage = () => {
         // Set displayedTime immediately to avoid UI jump
         if (data.isRunning && data.startTime) {
           const now = Date.now();
-          const elapsed = Math.floor((now - new Date(data.startTime).getTime()) / 1000);
+          const elapsed = (now - new Date(data.startTime).getTime()) / 1000;
+
           setDisplayedTime((data.totalElapsed || 0) + elapsed);
         } else {
           setDisplayedTime(data.totalElapsed || 0);
@@ -57,7 +59,7 @@ const TimerPage = () => {
 
   // Connect to socket
   useEffect(() => {
-    connectSocket(sessionStorage.getItem('userId') || undefined);
+    connectSocket(sessionStorage.getItem("userId") || undefined);
     return () => {
       disconnectSocket();
     };
@@ -91,10 +93,26 @@ const TimerPage = () => {
       setStartTime(null);
     });
 
+    socket.on("timer:status", (data) => {
+      setIsRunning(data.isRunning);
+      setStartTime(data.startTime ? new Date(data.startTime) : null);
+      setTotalElapsed(data.totalElapsed || 0);
+
+      // Set displayedTime immediately to avoid UI jump
+      if (data.isRunning && data.startTime) {
+        const now = Date.now();
+        const elapsed = (now - new Date(data.startTime).getTime()) / 1000
+        setDisplayedTime((data.totalElapsed || 0) + elapsed);
+      } else {
+        setDisplayedTime(data.totalElapsed || 0);
+      }
+    });
+
     return () => {
       socket.off("timer:paused");
       socket.off("timer:started");
       socket.off("timer:reset");
+      socket.off("timer:status");
     };
   }, []);
 
@@ -113,7 +131,7 @@ const TimerPage = () => {
         setIsRunning(true);
         setStartTime(new Date(data.startTime));
         setTotalElapsed(data.totalElapsed || 0);
-      };
+      }
     } catch (err) {
       console.error("Failed to start timer", err);
     }
@@ -142,9 +160,10 @@ const TimerPage = () => {
   };
 
   const formatTime = (seconds: number) => {
-    const h = String(Math.floor(seconds / 3600)).padStart(2, "0");
-    const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
-    const s = String(seconds % 60).padStart(2, "0");
+    const totalMilliseconds = Math.floor(seconds * 1000);
+    const h = String(Math.floor(totalMilliseconds / 3600000)).padStart(2, "0");
+    const m = String(Math.floor((totalMilliseconds % 3600000) / 60000)).padStart(2, "0");
+    const s = String(Math.floor((totalMilliseconds % 60000) / 1000)).padStart(2, "0");
     return `${h}:${m}:${s}`;
   };
 
@@ -189,13 +208,28 @@ const TimerPage = () => {
           </div>
 
           <div className="btn-group" role="group">
-            <button type="button" id="start-button" className="btn btn-success" onClick={handleStart}>
+            <button
+              type="button"
+              id="start-button"
+              className="btn btn-success"
+              onClick={handleStart}
+            >
               Start
             </button>
-            <button type="button" id="pause-button" className="btn btn-warning" onClick={handlePause}>
+            <button
+              type="button"
+              id="pause-button"
+              className="btn btn-warning"
+              onClick={handlePause}
+            >
               Pause
             </button>
-            <button type="button" id="reset-button" className="btn btn-danger" onClick={handleReset}>
+            <button
+              type="button"
+              id="reset-button"
+              className="btn btn-danger"
+              onClick={handleReset}
+            >
               Reset
             </button>
           </div>
