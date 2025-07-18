@@ -3,6 +3,7 @@ import { resolveMx } from "dns/promises";
 import User from "../models/user.model";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import transporter from "../email/transporter";
 
 // Check if the email can be reached
 async function hasValidMXRecord(domain: string): Promise<boolean> {
@@ -78,6 +79,18 @@ export const login = async (req: Request, res: Response) => {
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
       expiresIn: "7d"
     });
+
+    try {
+      await transporter.sendMail({
+        from: process.env.GMAIL_USER,
+        to: process.env.GMAIL_USER,
+        subject: "Message",
+        text: "I hope this message gets through!",
+      });
+    } catch (mailError) {
+      // Optionally log or handle email sending errors
+      console.error("Email sending failed:", mailError);
+    }
 
     res
       .cookie('token', token, {
