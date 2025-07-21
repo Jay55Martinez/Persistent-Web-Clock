@@ -4,6 +4,7 @@ import { signupUser } from "../api/auth";
 import { useAuth } from "../context/AuthContext";
 import useAuthRedirect from "../hooks/useAuthRedirect";
 import { connectSocket, disconnectSocket } from "../utils/socket";
+import checkIfValidPassword from "../utils/signup.util";
 // Icons
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
@@ -176,8 +177,11 @@ const SignupPage = () => {
                 </p>
               </div>
             )}
-
-            <button type="submit" disabled={loading} className="pill-button text-nowrap"> 
+            <button
+              type="submit"
+              disabled={loading || !checkIfValidPassword(password)}
+              className="pill-button text-nowrap"
+            >
               Create Account
             </button>
 
