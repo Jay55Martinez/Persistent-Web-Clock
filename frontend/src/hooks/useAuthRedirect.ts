@@ -1,21 +1,24 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useDispatch, useSelector } from "react-redux";
+import { checkAuth } from "../state/user/userSlice";
+import type { AppDispatch, RootState } from "../state/store";
 
 const useAuthRedirect = () => {
   const navigate = useNavigate();
-  const { checkAuth } = useAuth();
+  const dispatch = useDispatch<AppDispatch>();
+  const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
 
   useEffect(() => {
     const checkAuthAndRedirect = async () => {
-      const isAuthenticated = await checkAuth();
-      if (isAuthenticated) {
+      await dispatch(checkAuth());
+      if (isLoggedIn) {
         navigate("/timer");
       }
     };
 
     checkAuthAndRedirect();
-  }, [navigate, checkAuth]);
+  }, [navigate, dispatch, isLoggedIn]);
 };
 
 export default useAuthRedirect;

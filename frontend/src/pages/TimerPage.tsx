@@ -16,6 +16,7 @@ const TimerPage = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [displayedTime, setDisplayedTime] = useState(0);
 
+
   // Poll every second to update UI
   useEffect(() => {
     const interval = setInterval(() => {

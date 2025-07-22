@@ -14,7 +14,7 @@ const disconnectSocket = () => {
   }
 };
 
-const connectSocket = (userId?: string) => {
+const connectSocket = (userId?: string | null) => {
   if (userId) {
     socket.auth = { userId };
   }

@@ -12,9 +12,15 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  isLoggedIn: {
+    type: Boolean,
+    default: false,
+    required: true,
+  },
   isVerified: {
     type: Boolean,
     default: false,
+    required: true,
   },
   verificationTokenExpires: Date,
   // Failed login tracking

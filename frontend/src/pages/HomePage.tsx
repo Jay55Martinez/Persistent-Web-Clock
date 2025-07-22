@@ -1,26 +1,21 @@
 import { useEffect } from "react";
 import Navbar from "../components/Navbar";
 import { connectSocket } from "../utils/socket";
-import { useAuth } from "../context/AuthContext";
+import type { RootState } from "../state/store";
+import { useSelector } from "react-redux";
 // styling
 import './pages.css'
 
 const HomePage = () => {
-  const { authLoading, isLoggedIn } = useAuth();
-
-  // Wait for auth check before rendering or connecting socket
-  if (authLoading) {
-    return <div>Loading...</div>;
-  }
+  const user = useSelector((state: RootState) => state.user);
 
   // Establish socket connection once authentication state is known
   useEffect(() => {
-    // console.log(isLoggedIn, authLoading);
-    if (!authLoading && isLoggedIn) {
-      const userId = sessionStorage.getItem('userId') ?? undefined;
-      connectSocket(userId);
+    console.log(user);
+    if (user.isLoggedIn) {
+      connectSocket(user.id);
     }
-  }, [authLoading, isLoggedIn]);
+  }, [user]);
 
   return (
     <div>

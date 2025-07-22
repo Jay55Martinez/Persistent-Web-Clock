@@ -1,19 +1,21 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { loginUser } from "../api/auth";
 import useAuthRedirect from "../hooks/useAuthRedirect";
 import { connectSocket, disconnectSocket } from "../utils/socket";
+import { useDispatch, useSelector } from "react-redux";
+import { login } from "../state/user/userSlice";
+import type { AppDispatch, RootState } from "../state/store";
 // Icons
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 // Style
 import "./pages.css";
 
 const LoginPage = () => {
+  const user = useSelector((state: RootState) => state.user);
+  const dispatch = useDispatch<AppDispatch>();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const { login } = useAuth();
   const navigate = useNavigate();
 
   useAuthRedirect();
@@ -22,12 +24,11 @@ const LoginPage = () => {
     e.preventDefault();
     try {
       const normalizedEmail = email.trim().toLowerCase();
-      const data = await loginUser(normalizedEmail, password);
       // No need to store token in localStorage anymore - using cookies
-      login(data.user); // Pass user data to login function
+      dispatch(login({ email: normalizedEmail, password }));
       disconnectSocket();
       await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1000ms
-      connectSocket(data.user.id); // Connect the socket
+      connectSocket(user.id); // Connect the socket
       navigate("/timer");
     } catch (err) {
       alert("Login failed. Check credentials.");

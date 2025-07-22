@@ -1,14 +1,15 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { signupUser } from "../api/auth";
-import { useAuth } from "../context/AuthContext";
 import useAuthRedirect from "../hooks/useAuthRedirect";
-import { connectSocket, disconnectSocket } from "../utils/socket";
 import checkIfValidPassword from "../utils/signup.util";
+import { useDispatch } from "react-redux";
+import { signup } from "../state/user/userSlice";
+import type { AppDispatch } from "../state/store";
 // Icons
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const SignupPage = () => {
+  const dispatch = useDispatch<AppDispatch>();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -23,7 +24,6 @@ const SignupPage = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
 
   useAuthRedirect();
 
@@ -73,14 +73,12 @@ const SignupPage = () => {
 
     try {
       const normalizedEmail = email.trim().toLowerCase();
-      const data = await signupUser(normalizedEmail, password);
-      // No need to store token in localStorage anymore - using cookies
-      login(data.user); // Pass user data to login function
+      // Persist email for verification step
+      dispatch(signup({ email: normalizedEmail, password }));
       setSuccess(true);
-      disconnectSocket();
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1000ms
-      connectSocket(data.user.id); // Connect the socket
-      navigate("/timer");
+      setTimeout(() => {
+        navigate("/verify");
+      }, 1000);
     } catch (err: any) {
       if (err.response?.status === 409) {
         setError("Email is already registered.");

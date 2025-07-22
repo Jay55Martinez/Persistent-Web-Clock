@@ -1,25 +1,24 @@
 import { logoutUser } from '../api/auth';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import {disconnectSocket } from "../utils/socket";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../state/user/userSlice";
+import type { AppDispatch, RootState } from "../state/store";
 // Styling 
 import './navbar.css';
 
 // Navbar component - Used for navigating to different pages
 const Navbar = () => {
-  const { isLoggedIn, logout } = useAuth();
+  const user = useSelector((state: RootState) => state.user);
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const location = useLocation();
   const isOnTimerPage = location.pathname === "/timer";
 
   const handleLogout = async () => {
-    try {
-      await logoutUser(); // Call API to clear server-side cookie
-      sessionStorage.removeItem('userId');
-    } catch (error) {
-      console.error('Logout API call failed:', error);
+    if (user.email) {
+      dispatch(logout(user.email)); // Clear client-side state
     }
-    logout(); // Clear client-side state
     // wait some time
     disconnectSocket();
     await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1000ms
@@ -40,7 +39,7 @@ const Navbar = () => {
         <a className="logo-text" style={{ paddingLeft: 15 }} href="/" >Tank Timer</a>
         <div id="button-container" className="d-flex gap-3" style={{ paddingRight: 15}}>
           <button onClick={navigateTimerOrHome} className='pill-button'>{isOnTimerPage ? "Home" : "Timer"}</button>
-          {isLoggedIn ? (
+          {user.isLoggedIn ? (
             <button onClick={handleLogout} className='pill-button'>Logout</button>
           ) : (
             <button onClick={handleLogin} className='pill-button'>Login</button>

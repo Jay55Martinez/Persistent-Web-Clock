@@ -12,7 +12,7 @@ export const signup = async (req: Request, res: Response) => {
   const emailNormalized = email.toLowerCase();
   const codeNew = generateVerificationCode();
   const expirationTime = Number(process.env.VERIFICATION_CODE_EXPIRATION_TIME) || 15;
-  console.log(expirationTime);
+  
   try {
     // Basic format check
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNormalized)) {
@@ -74,9 +74,10 @@ export const signup = async (req: Request, res: Response) => {
       password: hashed,
       verificationTokenExpires: new Date(Date.now() + expirationTime * 60 * 1000),
       isVerified: false,
+      isLoggedIn: false,
     });
 
-    res.status(200).json({ message: "Verification email sent successfully." });
+    res.status(200).json({ user: { id: user._id, email: user.email, isVerified: user.isVerified, isLoggedIn: user.isLoggedIn, verificationTokenExpires: user.verificationTokenExpires } });
   } catch (err) {
     res.status(500).json({ error: "Signup failed" });
   }
@@ -124,12 +125,14 @@ export const verifyResend = async (req: Request, res: Response) => {
       text: `Your verification code is: ${codeNew}`,
     });
   } catch (error) {
-    // Optionally log or handle errors
-    console.error("Error during email verification:", error);
     res.status(500).json({ error: "Failed to send verification email." });
   }
 
-  res.status(200).json({ message: "Verification email sent successfully." });
+  // Update the user's verification token expiration
+  user.verificationTokenExpires = new Date(Date.now() + expirationTime * 60 * 1000);
+  await user.save();
+
+  res.status(200).json({ user : { id: user._id, email: user.email, isVerified: user.isVerified, isLoggedIn: user.isLoggedIn } });
 };
 
 export const verifyAccount = async (req: Request, res: Response) => {
@@ -157,7 +160,9 @@ export const verifyAccount = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "User already verified." });
     }
     user.isVerified = true;
+    user.isLoggedIn = true; // Set isLoggedIn to true upon successful verification
     await user.save();
+
     await verificationCode.deleteOne(); // Remove the code after successful verification
 
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
@@ -172,7 +177,7 @@ export const verifyAccount = async (req: Request, res: Response) => {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       })
       .status(201)
-      .json({ user: { id: user._id, email: user.email } });
+      .json({ user: { id: user._id, email: user.email, isVerified: user.isVerified, isLoggedIn: user.isLoggedIn } });
 
   } catch (error) {
     return res.status(500).json({ error: "Verification failed." });
@@ -189,32 +194,52 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
+    // Update user's isLoggedIn status
+    user.isLoggedIn = true;
+    await user.save();
+
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
       expiresIn: "7d",
     });
 
     res
+      .status(200)
       .cookie("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       })
-      .json({ user: { id: user._id, email: user.email } });
+      .json({ user: { id: user._id, email: user.email, isVerified: user.isVerified, isLoggedIn: user.isLoggedIn } });
+
   } catch (error) {
     res.status(500).json({ error: "Login failed" });
   }
 };
 
 export const logout = async (req: Request, res: Response) => {
-  res.clearCookie("token").json({ message: "Logged out successfully" });
+  const email = req.body.email.toLowerCase();
+  const user = await User.findOne({ email: email });
+  if (user && user.isLoggedIn) {
+    user.isLoggedIn = false; // Update user's isLoggedIn status
+    await user.save();
+  }
+  else {
+    return res.status(400).json({ error: "User not logged in." });
+  }
+  res.status(200).clearCookie("token").json({ user: { id: user._id, email: user.email, isVerified: user.isVerified, isLoggedIn: user.isLoggedIn } });
 };
 
 export const verifyAuth = async (req: Request, res: Response) => {
   // This endpoint uses the authenticateUser middleware
   // If we reach here, the user is authenticated
+  // Lookup full user record and return id, email, isVerified
+  const account = await User.findById(req.user!.id);
+  if (!account) {
+    return res.status(404).json({ error: 'User not found.' });
+  }
   res.json({
     authenticated: true,
-    user: { id: req.user!.id },
+    user: { id: account._id, email: account.email, isVerified: account.isVerified, isLoggedIn: account.isLoggedIn },
   });
 };
