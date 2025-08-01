@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { verify } from "../state/user/userSlice";
+import { verify, resendVerification } from "../state/user/userSlice";
 import type { AppDispatch, RootState } from "../state/store";
 
 const VerificationPage = () => {
@@ -17,6 +17,20 @@ const VerificationPage = () => {
       await dispatch(verify({ email: emailToVerify, code: token }));
       navigate("/timer");
     }
+    else {
+      alert("Email is GONEEE!")
+    }
+  };
+
+  const handleResendVerification = async () => {
+    const emailToResend = user.email;
+    if (emailToResend) {
+      await dispatch(resendVerification(emailToResend));
+      alert("Verification code resent. Please check your email.");
+    }
+    else {
+      alert("Email is GONEEE!")
+    }
   };
 
   return (
@@ -24,6 +38,7 @@ const VerificationPage = () => {
       <h1>Verification Page</h1>
       <input type="number" value={token} onChange={(e) => setToken(e.target.value)} />
       <button onClick={handleVerify}>Verify</button>
+      <button onClick={handleResendVerification}>Resend Verification Code</button>
     </div>
   );
 };
