@@ -1,20 +1,20 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { verify, resendVerification } from "../state/user/userSlice";
-import type { AppDispatch, RootState } from "../state/store";
+import type { AppDispatch } from "../state/store";
 
 const VerificationPage = () => {
-  const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch<AppDispatch>();
   const [token, setToken] = useState("");
   const navigate = useNavigate();
-
+  const emailToVerify = localStorage.getItem("verifyEmail")
 
   const handleVerify = async () => {
-    const emailToVerify = user.email
     if (emailToVerify) {
       await dispatch(verify({ email: emailToVerify, code: token }));
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1000ms
+      localStorage.removeItem("verifyEmail")
       navigate("/timer");
     }
     else {
@@ -23,9 +23,8 @@ const VerificationPage = () => {
   };
 
   const handleResendVerification = async () => {
-    const emailToResend = user.email;
-    if (emailToResend) {
-      await dispatch(resendVerification(emailToResend));
+    if (emailToVerify) {
+      await dispatch(resendVerification(emailToVerify));
       alert("Verification code resent. Please check your email.");
     }
     else {

@@ -60,7 +60,7 @@ export const signup = createAsyncThunk("auth/signup", async ({ email, password }
 export const verify = createAsyncThunk("auth/verify", async ({ email, code }: { email: string; code: string }, thunkAPI) => {
     try {
         const response = await verifyAccount(email, code);
-        if (response.status === 201) {
+        if (response.status === 200) {
             return response.data.user;
         } else {
             return thunkAPI.rejectWithValue(response.data.error || "Verification failed");

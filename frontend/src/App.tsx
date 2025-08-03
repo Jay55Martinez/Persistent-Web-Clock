@@ -19,6 +19,14 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   return user.isLoggedIn ? children : <Navigate to="/" />;
 };
 
+const PendingVerification = ({ children }: { children: JSX.Element }) => {
+  console.log(localStorage.getItem("verifyEmail"))
+  if (localStorage.getItem("verifyEmail")) {
+    return children;
+  }
+  return <Navigate to="/signup"/>
+}
+
 function App() {
 
   return (
@@ -30,9 +38,9 @@ function App() {
         <Route 
           path="/verify" 
           element={
-            //<ProtectedRoute>
+            <PendingVerification>
              <VerificationPage />
-            //</ProtectedRoute>
+            </PendingVerification>
           }
         />
         <Route

@@ -170,13 +170,13 @@ export const verifyAccount = async (req: Request, res: Response) => {
     });
 
     res
+      .status(200)
       .cookie("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "none", // allow cross-site on different ports
+        sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       })
-      .status(201)
       .json({ user: { id: user._id, email: user.email, isVerified: user.isVerified, isLoggedIn: user.isLoggedIn } });
 
   } catch (error) {

@@ -7,10 +7,13 @@ import {
   getTimerStatus,
 } from "../api/timer";
 import socket, { connectSocket, disconnectSocket } from "../utils/socket";
+import { useSelector } from "react-redux";
+import type { RootState } from "../state/store";
 // styling
 import "./pages.css";
 
 const TimerPage = () => {
+  const user = useSelector((state: RootState) => state.user);
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [totalElapsed, setTotalElapsed] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
@@ -60,7 +63,7 @@ const TimerPage = () => {
 
   // Connect to socket
   useEffect(() => {
-    connectSocket(sessionStorage.getItem("userId") || undefined);
+    connectSocket(user.id || undefined);
     return () => {
       disconnectSocket();
     };

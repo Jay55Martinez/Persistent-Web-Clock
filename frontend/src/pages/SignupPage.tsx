@@ -77,6 +77,7 @@ const SignupPage = () => {
       dispatch(signup({ email: normalizedEmail, password }));
       setSuccess(true);
       setTimeout(() => {
+        localStorage.setItem("verifyEmail", normalizedEmail);
         navigate("/verify");
       }, 1000);
     } catch (err: any) {

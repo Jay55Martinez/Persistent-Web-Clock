@@ -22,16 +22,17 @@ const LoginPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const normalizedEmail = email.trim().toLowerCase();
-      // No need to store token in localStorage anymore - using cookies
-      dispatch(login({ email: normalizedEmail, password }));
-      disconnectSocket();
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1000ms
-      connectSocket(user.id); // Connect the socket
+    const normalizedEmail = email.trim().toLowerCase();
+    // No need to store token in localStorage anymore - using cookies
+    dispatch(login({ email: normalizedEmail, password }));
+    disconnectSocket();
+    connectSocket(user.id); // Connect the socket
+    if (user.isLoggedIn) {
       navigate("/timer");
-    } catch (err) {
-      alert("Login failed. Check credentials.");
+    }
+    else {
+      // Want to increament the number of times that you can enter a password before you get locked out
+      alert("Invalid Password!")
     }
   };
 
