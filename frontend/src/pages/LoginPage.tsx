@@ -24,10 +24,10 @@ const LoginPage = () => {
     e.preventDefault();
     const normalizedEmail = email.trim().toLowerCase();
     // No need to store token in localStorage anymore - using cookies
-    dispatch(login({ email: normalizedEmail, password }));
-    disconnectSocket();
-    connectSocket(user.id); // Connect the socket
-    if (user.isLoggedIn) {
+    const resultAction = await dispatch(login({ email: normalizedEmail, password }));
+    if (login.fulfilled.match(resultAction)) {
+      disconnectSocket();
+      connectSocket(resultAction.payload.user.id); // Connect the socket
       navigate("/timer");
     }
     else {

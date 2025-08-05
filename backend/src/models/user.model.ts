@@ -22,17 +22,21 @@ const UserSchema = new mongoose.Schema({
     default: false,
     required: true,
   },
-  verificationTokenExpires: Date,
-  // Failed login tracking
+  isLocked: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
   loginAttempts: {
     type: Number,
     required: true,
     default: 0,
   },
+  durationLocked: Date,
+  verificationTokenExpires: Date,
 });
 
 // expireAfterSeconds:0 means “remove when date ≤ now”
-// optionally, if you’re on MongoDB 4.4+ you can add a partialFilterExpression
 UserSchema.index(
   { verificationTokenExpires: 1 },
   { expireAfterSeconds: 0, partialFilterExpression: { isVerified: false } }
