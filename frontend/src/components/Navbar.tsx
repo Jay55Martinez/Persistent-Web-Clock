@@ -1,4 +1,3 @@
-import { logoutUser } from '../api/auth';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {disconnectSocket } from "../utils/socket";
 import { useDispatch, useSelector } from "react-redux";

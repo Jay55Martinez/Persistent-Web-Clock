@@ -111,7 +111,7 @@ export const verifyResend = async (req: Request, res: Response) => {
   try {
     // Store the verification code in the database first
     const existingCode = await Code.findOne({ email: emailNormalized });
-    console.log();
+
     if (existingCode) {
       // If a code already exists, update it
       existingCode.code = codeNew;
@@ -237,7 +237,7 @@ export const login = async (req: Request, res: Response) => {
       user.durationLocked.getTime() < Date.now()
     ) {
       user.isLocked = false;
-      user.durationLocked
+      user.durationLocked;
       if (!(await bcrypt.compare(password, user.password))) {
         user.loginAttempts += 1;
         if (
@@ -274,8 +274,8 @@ export const login = async (req: Request, res: Response) => {
         await user.save();
         return res.status(423).json({ error: "Current user locked out" });
       }
-      await user.save()
-      return res.status(401).json({ error: "Invalid credentials" })
+      await user.save();
+      return res.status(401).json({ error: "Invalid credentials" });
     }
     await user.save();
 
@@ -331,10 +331,148 @@ export const logout = async (req: Request, res: Response) => {
     });
 };
 
+/**
+ * Creates a 6 digit code to enable password reset
+ * @param {Response} res - Express response object for sending status and messages.
+ * @returns {Promise<void>} Sends a response indicating the result of the email operation.
+ */
+export const requestPasswordReset = async (req: Request, res: Response) => {
+  // Ensures that an email is provided in the Post request
+  try {
+    const emailNormalized = req.body.email.toLowerCase();
+    const codeNew = generateVerificationCode();
+    const expirationTime =
+      Number(process.env.VERIFICATION_CODE_EXPIRATION_TIME) || 15;
+
+    // Add code to DB
+    const existingCode = await Code.findOne({ email: emailNormalized });
+    if (existingCode) {
+      // If a code already exists, update it
+      existingCode.code = codeNew;
+      existingCode.expiresAt = new Date(
+        Date.now() + expirationTime * 60 * 1000
+      ); // expiration
+      await existingCode.save();
+    } else {
+      await Code.create({
+        email: emailNormalized,
+        code: codeNew,
+        expiresAt: new Date(Date.now() + expirationTime * 60 * 1000),
+      });
+    }
+
+    // Send email
+    await transporter.sendMail({
+      from: process.env.GMAIL_USER,
+      to: emailNormalized,
+      subject: "Verification Code",
+      text: `Your verification code is: ${codeNew}`,
+    });
+    res.status(300).json({ message: "Email sent" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: error instanceof Error ? error.message : String(error) });
+  }
+};
+
+/**
+ * Verifies if the provided reset code matches the one stored for the user's email.
+ * @param {Request} req - Express request object containing email and code in the body.
+ * @param {Response} res - Express response object for sending status and messages.
+ */
+export const verifyResetCode = async (req: Request, res: Response) => {
+  try {
+    const emailNormalized = req.body.email.toLowerCase();
+    const code = req.body.code;
+
+    const existingCode = await Code.findOne({
+      email: emailNormalized,
+      code: code,
+    });
+
+    if (existingCode) {
+      return res.status(200).json({ message: "Code exists" });
+    }
+    res.status(400).json({ error: "Code does not match" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: error instanceof Error ? error.message : String(error) });
+  }
+};
+
+/**
+ * Resets the password for the user with the email and correct code.
+ * @param {Request} req - Express request object containing email, code, and new password in the body.
+ * @param {Response} res - Express response object for sending status and messages.
+ */
 export const resetPassword = async (req: Request, res: Response) => {
-  const email = req.body.email.toLowerCase();
-  const password = req.body.password;
-  const user = await User.findOne({ email: email });
+  try {
+    const emailNormalized = req.body.email.toLowerCase();
+    const code = req.body.code;
+
+    // check if code is valid
+    const existingCode = await Code.findOne({
+      email: emailNormalized,
+      code: code,
+    });
+    if (!existingCode) {
+      return res.status(400).json({ error: "Code does not match" });
+    }
+
+    await existingCode.deleteOne();
+
+    // Check password validity
+    if (!checkIfValidPassword(req.body.password)) {
+      return res.status(400).json({
+        error:
+          "Password must be at least 12 characters long, contain uppercase, lowercase, number, and special character.",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
+    // Check if the email is valid
+    const user = await User.findOne({ email: emailNormalized });
+    if (!user) {
+      return res.status(400).json({ error: "email does not exist" });
+    }
+
+    // Update the users password
+    user.password = hashedPassword;
+
+    // Unlock the user if they currently locked out
+    user.loginAttempts = 0;
+    user.isLocked = false;
+
+    await user.save();
+
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
+      expiresIn: "7d",
+    });
+
+    res
+      .status(200)
+      .cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      })
+      .json({
+        user: {
+          id: user._id,
+          email: user.email,
+          isVerified: user.isVerified,
+          isLoggedIn: user.isLoggedIn,
+        },
+      });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: error instanceof Error ? error.message : String(error) });
+  }
 };
 
 export const verifyAuth = async (req: Request, res: Response) => {
