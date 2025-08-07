@@ -19,6 +19,9 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   return user.isLoggedIn ? children : <Navigate to="/" />;
 };
 
+// TODO: I don't think that this is the best way to be checking if can go onto the 
+// verify page. Having a value stored in local storage just means that I now need 
+// to manage it and ensure that it is cleared after it has been used 
 const PendingVerification = ({ children }: { children: JSX.Element }) => {
   console.log(localStorage.getItem("verifyEmail"))
   if (localStorage.getItem("verifyEmail")) {

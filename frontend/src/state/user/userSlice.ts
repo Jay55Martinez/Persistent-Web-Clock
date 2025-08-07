@@ -2,7 +2,6 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { loginUser, logoutUser, signupUser, verifyAuth, verifyAccount, resendVerification as resendVerificationApi } from "../../api/auth";
 
 interface UserState {
-    id: string | null;
     email: string | null;
     isVerified: boolean;
     isLoggedIn: boolean;
@@ -10,7 +9,6 @@ interface UserState {
 }
 
 const initialState: UserState = {
-    id: null,
     email: null,
     isVerified: false,
     isLoggedIn: false,
@@ -50,7 +48,7 @@ export const signup = createAsyncThunk("auth/signup", async ({ email, password }
         if (response.status === 200) {
             return response.data.user;
         } else {
-            return thunkAPI.rejectWithValue(response.data.error || "Logout failed");
+            return thunkAPI.rejectWithValue(response.data.error || "Signup failed");
         }
     } catch (error) {
         return thunkAPI.rejectWithValue("Signup failed");
@@ -108,33 +106,28 @@ const userSlice = createSlice({
         builder
             .addCase(checkAuth.fulfilled, (state, action) => {
                 const u = action.payload;
-                state.id = u.id;
                 state.email = u.email;
                 state.isVerified = u.isVerified;
                 state.isLoggedIn = true;
             })
             .addCase(checkAuth.rejected, state => {
-                state.id = null;
                 state.email = null;
                 state.isVerified = false;
                 state.isLoggedIn = false;
             })
             .addCase(login.fulfilled, (state, action) => {
                 const u = action.payload;
-                state.id = u.id;
                 state.email = u.email;
                 state.isVerified = u.isVerified;
                 state.isLoggedIn = true;
             })
             .addCase(logout.fulfilled, state => {
-                state.id = null;
                 state.email = null;
                 state.isVerified = false;
                 state.isLoggedIn = false;
             })
             .addCase(signup.fulfilled, (state, action) => {
                 const u = action.payload;
-                state.id = u.id;
                 state.email = u.email;
                 state.isVerified = u.isVerified;
                 state.isLoggedIn = false;
@@ -142,14 +135,12 @@ const userSlice = createSlice({
             })
             .addCase(verify.fulfilled, (state, action) => {
                 const u = action.payload;
-                state.id = u.id;
                 state.email = u.email;
                 state.isVerified = u.isVerified;
                 state.isLoggedIn = u.isLoggedIn;
             })
             .addCase(resendVerification.fulfilled, (state, action) => {
                 const u = action.payload;
-                state.id = u.id;
                 state.email = u.email;
                 state.isVerified = u.isVerified;
                 state.isLoggedIn = false;

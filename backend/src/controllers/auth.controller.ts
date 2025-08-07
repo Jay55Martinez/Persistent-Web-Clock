@@ -80,7 +80,6 @@ export const signup = async (req: Request, res: Response) => {
 
     res.status(200).json({
       user: {
-        id: user._id,
         email: user.email,
         isVerified: user.isVerified,
         isLoggedIn: user.isLoggedIn,
@@ -145,7 +144,6 @@ export const verifyResend = async (req: Request, res: Response) => {
 
   res.status(200).json({
     user: {
-      id: user._id,
       email: user.email,
       isVerified: user.isVerified,
       isLoggedIn: user.isLoggedIn,
@@ -197,7 +195,6 @@ export const verifyAccount = async (req: Request, res: Response) => {
       })
       .json({
         user: {
-          id: user._id,
           email: user.email,
           isVerified: user.isVerified,
           isLoggedIn: user.isLoggedIn,
@@ -298,7 +295,6 @@ export const login = async (req: Request, res: Response) => {
       })
       .json({
         user: {
-          id: user._id,
           email: user.email,
           isVerified: user.isVerified,
           isLoggedIn: user.isLoggedIn,
@@ -323,7 +319,6 @@ export const logout = async (req: Request, res: Response) => {
     .clearCookie("token")
     .json({
       user: {
-        id: user._id,
         email: user.email,
         isVerified: user.isVerified,
         isLoggedIn: user.isLoggedIn,
@@ -462,7 +457,6 @@ export const resetPassword = async (req: Request, res: Response) => {
       })
       .json({
         user: {
-          id: user._id,
           email: user.email,
           isVerified: user.isVerified,
           isLoggedIn: user.isLoggedIn,
@@ -486,7 +480,6 @@ export const verifyAuth = async (req: Request, res: Response) => {
   res.json({
     authenticated: true,
     user: {
-      id: account._id,
       email: account.email,
       isVerified: account.isVerified,
       isLoggedIn: account.isLoggedIn,
