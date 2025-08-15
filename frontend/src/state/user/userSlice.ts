@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { loginUser, logoutUser, signupUser, verifyAuth, verifyAccount, resendVerification as resendVerificationApi } from "../../api/auth";
+import { loginUser, logoutUser, signupUser, verifyAuth, verifyAccount, resendVerification as resendVerificationApi, resetPassword as resetPasswordApi } from "../../api/auth";
 
 interface UserState {
     email: string | null;
@@ -84,6 +84,22 @@ export const resendVerification = createAsyncThunk<any, string>(
     }
 );
 
+export const resetPassword = createAsyncThunk(
+    "auth/resetPassword",
+    async ({ email, password, code }: { email: string; password: string; code: number }, thunkAPI) => {
+        try {
+            const response = await resetPasswordApi(email, password, code);
+            if (response.status === 200) {
+                return response.data.user;
+            } else {
+                return thunkAPI.rejectWithValue(response.data.error || "Password reset failed");
+            }
+        } catch (error) {
+            return thunkAPI.rejectWithValue("Password reset failed");
+        }
+    }
+);
+
 // Check auth status via cookie-based session
 export const checkAuth = createAsyncThunk("auth/checkAuth", async (_, thunkAPI) => {
     try {
@@ -145,6 +161,13 @@ const userSlice = createSlice({
                 state.isVerified = u.isVerified;
                 state.isLoggedIn = false;
                 state.verificationTokenExpires = u.verificationTokenExpires;
+            })
+            .addCase(resetPassword.fulfilled, (state, action) => {
+                const u = action.payload;
+                state.email = u.email;
+                state.isVerified = u.isVerified;
+                state.isLoggedIn = u.isLoggedIn;
+                state.verificationTokenExpires = null; // Clear verification token on successful password reset
             });
     }
 });

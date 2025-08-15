@@ -329,6 +329,7 @@ export const logout = async (req: Request, res: Response) => {
 /**
  * Creates a 6 digit code to enable password reset
  * @param {Response} res - Express response object for sending status and messages.
+ * @param {Request} req - Body contains the email of the account that is requesting the password reset
  * @returns {Promise<void>} Sends a response indicating the result of the email operation.
  */
 export const requestPasswordReset = async (req: Request, res: Response) => {

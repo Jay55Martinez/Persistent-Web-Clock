@@ -3,7 +3,6 @@ import LoginPage from "./pages/LoginPage";
 import TimerPage from "./pages/TimerPage";
 import SignupPage from "./pages/SignupPage";
 import HomePage from "./pages/HomePage";
-import VerificationPage from "./pages/VerificationPage";
 import type { RootState } from "./state/store";
 import { useSelector } from "react-redux";
 import { useAuth } from "./context/AuthContext";
@@ -19,17 +18,6 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   return user.isLoggedIn ? children : <Navigate to="/" />;
 };
 
-// TODO: I don't think that this is the best way to be checking if can go onto the 
-// verify page. Having a value stored in local storage just means that I now need 
-// to manage it and ensure that it is cleared after it has been used 
-const PendingVerification = ({ children }: { children: JSX.Element }) => {
-  console.log(localStorage.getItem("verifyEmail"))
-  if (localStorage.getItem("verifyEmail")) {
-    return children;
-  }
-  return <Navigate to="/signup"/>
-}
-
 function App() {
 
   return (
@@ -38,14 +26,6 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route 
-          path="/verify" 
-          element={
-            <PendingVerification>
-             <VerificationPage />
-            </PendingVerification>
-          }
-        />
         <Route
           path="/timer"
           element={
