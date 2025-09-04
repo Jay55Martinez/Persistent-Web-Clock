@@ -364,7 +364,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
       subject: "Verification Code",
       text: `Your verification code is: ${codeNew}`,
     });
-    res.status(300).json({ message: "Email sent" });
+    res.status(200).json({ message: "Email sent" });
   } catch (error) {
     res
       .status(500)
@@ -435,6 +435,9 @@ export const resetPassword = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "email does not exist" });
     }
 
+    // Log the User in 
+    user.isLoggedIn = true;
+
     // Update the users password
     user.password = hashedPassword;
 
@@ -460,7 +463,7 @@ export const resetPassword = async (req: Request, res: Response) => {
         user: {
           email: user.email,
           isVerified: user.isVerified,
-          isLoggedIn: user.isLoggedIn,
+          isLoggedIn: true,
         },
       });
   } catch (error) {

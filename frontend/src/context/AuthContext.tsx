@@ -6,7 +6,6 @@ import type { RootState, AppDispatch } from "../state/store";
 import type { ReactNode } from "react";
 
 type User = {
-  id: string;
   email: string;
   isVerified: boolean;
 };
@@ -26,9 +25,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isLoggedIn = userState.isLoggedIn;
 
   // Map userState to User | null
-  const user: User | null = userState && userState.id && userState.email
+  const user: User | null = userState && userState.email
     ? {
-        id: userState.id as string,
         email: userState.email as string,
         isVerified: userState.isVerified,
       }
