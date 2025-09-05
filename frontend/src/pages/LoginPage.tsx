@@ -12,12 +12,6 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 // Style
 import "./pages.css";
 
-/*
-TODO:
-- Ensure the new password isn't the same as the old one
-- Resend code
-*/
-
 const PageState = {
   Login: 0,
   ForgotPasswordEmail: 1,
@@ -240,6 +234,9 @@ const LoginPage = () => {
                 onChange={(e) => setVerificationCode(Number(e.target.value))}
               />
               <br />
+              <button type="button" className="pill-button" onClick={handlePasswordResetRequest}>
+                Resend Code
+              </button>
               <button type="submit" className="pill-button">Verify Code</button>
             </form>
             )}

@@ -417,8 +417,6 @@ export const resetPassword = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Code does not match" });
     }
 
-    await existingCode.deleteOne();
-
     // Check password validity
     if (!checkIfValidPassword(req.body.password)) {
       return res.status(400).json({
@@ -435,6 +433,11 @@ export const resetPassword = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "email does not exist" });
     }
 
+    // Ensure the new password is different than the old one
+    if (await bcrypt.compare(req.body.password, user.password)) {
+      return res.status(400).json({ error: "New password must be different from the old one." });
+    }
+
     // Log the User in 
     user.isLoggedIn = true;
 
@@ -446,6 +449,7 @@ export const resetPassword = async (req: Request, res: Response) => {
     user.isLocked = false;
 
     await user.save();
+    await existingCode.deleteOne();
 
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
       expiresIn: "7d",
