@@ -3,17 +3,19 @@ import LoginPage from "./pages/LoginPage";
 import TimerPage from "./pages/TimerPage";
 import SignupPage from "./pages/SignupPage";
 import HomePage from "./pages/HomePage";
+import type { RootState } from "./state/store";
+import { useSelector } from "react-redux";
 import { useAuth } from "./context/AuthContext";
 import type { JSX } from "react";
 
-
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
-  const { isLoggedIn, authLoading } = useAuth();
-  if (authLoading)
-    {
-      return <div>Loading...</div>;
-    }
-  return isLoggedIn ? children : <Navigate to="/" />;
+  const user = useSelector((state: RootState) => state.user);
+  // wait
+  const { authLoading } = useAuth();
+  if (authLoading) {
+    return <div>Loading...</div>; // or a spinner
+  }
+  return user.isLoggedIn ? children : <Navigate to="/" />;
 };
 
 function App() {
