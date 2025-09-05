@@ -7,6 +7,7 @@ import { requestPasswordReset, verifyResetCode } from "../api/auth";
 import { login, resetPassword } from "../state/user/userSlice";
 import { checkIfValidPassword } from "../utils/signup.util";
 import type { AppDispatch } from "../state/store";
+import ParticlesBackground from "../components/ParticlesBackground";
 // Icons
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 // Style
@@ -124,6 +125,9 @@ const LoginPage = () => {
       id="background"
       className="d-flex justify-content-center align-items-center vh-100"
     >
+      <div className="background-root">
+        <ParticlesBackground particleCount={70} lineDistance={110} opacity={0.6} />
+      </div>
       <div id="card-container" className="card p-5 shadow" style={{ position: 'relative' }}>
         {pageState === PageState.ForgotPasswordEmail && (
           <button
@@ -148,11 +152,11 @@ const LoginPage = () => {
         <div id="text-align" className="text-center">
           {pageState === PageState.Login && (
             <form onSubmit={handleSubmit}>
-              <h1 className="text-shadow">Tank Timer</h1>
-              <h4 className="text-shadow">Log in to Tank Timer</h4>
+              <h1>tankTimer</h1>
+              <h4>Log in to tankTimer</h4>
               <input
                 id="information-input-email"
-                className="input-group mb-2 head-padding form-control shadow"
+                className="input-group mb-2 head-padding form-control"
                 type="email"
                 placeholder="Email address*"
                 value={email}
@@ -163,7 +167,7 @@ const LoginPage = () => {
               <div style={{ position: "relative" }}>
                 <input
                   id="information-input-password"
-                  className="input-group mb-2 form-control shadow"
+                  className="input-group mb-2 form-control"
                   type={showPassword ? "text" : "password"}
                   placeholder="Password*"
                   value={password}
@@ -205,11 +209,11 @@ const LoginPage = () => {
           )}
           {pageState === PageState.ForgotPasswordEmail && (
             <form onSubmit={handlePasswordResetRequest}>
-              <h1 className="text-shadow">Reset Password</h1>
-              <h4 className="text-shadow">Enter your email to reset your password</h4>
+              <h1>Reset Password</h1>
+              <h4>Enter your email to reset your password</h4>
               <input
                 id="information-input-email"
-                className="input-group mb-2 head-padding form-control shadow"
+                className="input-group mb-2 head-padding form-control"
                 type="email"
                 placeholder="Email address*"
                 value={email}
@@ -222,11 +226,11 @@ const LoginPage = () => {
           )}
           {pageState === PageState.ForgotPasswordCode && (
             <form onSubmit={checkVerificationCode}>
-              <h1 className="text-shadow">Reset Password</h1>
-              <h4 className="text-shadow">Enter the code you received</h4>
+              <h1>Reset Password</h1>
+              <h4>Enter the code you received</h4>
               <input
                 id="information-input-code"
-                className="input-group mb-2 head-padding form-control shadow"
+                className="input-group mb-2 head-padding form-control"
                 type="text"
                 placeholder="Verification Code*"
                 value={verificationCode}
@@ -242,12 +246,12 @@ const LoginPage = () => {
             )}
           {pageState === PageState.ResetPassword && (
             <form onSubmit={handleResetPassword}>
-              <h1 className="text-shadow">Reset Password</h1>
-              <h4 className="text-shadow">Enter your new password</h4>
+              <h1>Reset Password</h1>
+              <h4>Enter your new password</h4>
               <div style={{ position: "relative" }}>
               <input
                 id="information-input-new-password"
-                className="input-group mb-2 head-padding form-control shadow"
+                className="input-group mb-2 head-padding form-control"
                 type={showPasswordResetTop ? "text" : "password"}
                 placeholder="New Password*"
                 value={newPassword}
@@ -275,7 +279,7 @@ const LoginPage = () => {
                 <div style={{ position: "relative" }}>
               <input
                 id="information-input-confirm-password"
-                className="input-group mb-2 head-padding form-control shadow"
+                className="input-group mb-2 head-padding form-control"
                 type={showPasswordResetBottom ? "text" : "password"}
                 placeholder="Confirm New Password*"
                 value={confirmPassword}

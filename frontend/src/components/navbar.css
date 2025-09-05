@@ -1,27 +1,16 @@
-a, button {
-  font-family: 'Caprasimo', cursive;
-}
-
-.background {
-    background-color: #42a5f5;
-}
-
 .logo-text {
     font-size: 1.5rem;
-    text-shadow: 1px 2px 2px #1E88E5;
     font-weight: bold;
-    color: white;
+    color: var(--color-primary);
     text-decoration: none;
 }
 
-.pill-button {
-  width: 120px; /* Fixed width */
-  height: 45px; /* Optional for consistent height */
-  border: none;
-  border-radius: 999px; /* Makes it pill-shaped */
-  background-color: #42a5f5; /* Initial color */
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+.logo-text:hover {
+    text-decoration: none;
+    color: var(--color-primary-hover);
+    transform: translateY(-1px);
+}
+
+.background {
+    background-color: var(--color-background);
 }

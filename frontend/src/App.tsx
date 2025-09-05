@@ -7,6 +7,8 @@ import type { RootState } from "./state/store";
 import { useSelector } from "react-redux";
 import { useAuth } from "./context/AuthContext";
 import type { JSX } from "react";
+// Global styles
+import './styles/theme.css'
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const user = useSelector((state: RootState) => state.user);
