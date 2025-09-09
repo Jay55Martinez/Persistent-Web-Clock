@@ -7,6 +7,7 @@ import { signup, verify, resendVerification } from "../state/user/userSlice";
 import type { AppDispatch } from "../state/store";
 // Icons
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import ParticlesBackground from "../components/ParticlesBackground";
 
 const SignupPage = () => {
   useAuthRedirect();
@@ -112,21 +113,23 @@ const SignupPage = () => {
       id="background"
       className="d-flex justify-content-center align-items-center vh-100"
     >
+      <div className="background-root">
+        <ParticlesBackground particleCount={70} lineDistance={110} opacity={0.6} />
+      </div>
       <div id="card-container" className="card p-5 shadow">
         <div id="text-align" className="text-center">
           <form onSubmit={handleSubmit}>
-            <h1 className="text-shadow">Tank Timer</h1>
-            <h4 className="text-shadow">
+            <h1>Tank Timer</h1>
+            <h4>
               {verifyAccount
                 ? "Enter verification code"
                 : "Sign up for Tank Timer"}
             </h4>
-
             {!verifyAccount ? (
               <>
                 <input
                   id="information-input-email"
-                  className="input-group mb-2 head-padding form-control shadow"
+                  className="input-group mb-2 head-padding form-control"
                   type="email"
                   placeholder="Email address*"
                   value={email}
@@ -137,7 +140,7 @@ const SignupPage = () => {
                 <div style={{ position: "relative" }}>
                   <input
                     id="information-input-password"
-                    className="input-group mb-2 form-control shadow"
+                    className="input-group mb-2 form-control"
                     type={showPassword ? "text" : "password"}
                     placeholder="Password*"
                     value={password}

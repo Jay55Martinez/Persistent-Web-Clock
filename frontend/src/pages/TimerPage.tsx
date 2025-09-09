@@ -11,6 +11,7 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../state/store";
 // styling
 import "./pages.css";
+import ParticlesBackground from "../components/ParticlesBackground";
 
 const TimerPage = () => {
   const user = useSelector((state: RootState) => state.user);
@@ -173,19 +174,22 @@ const TimerPage = () => {
 
   return (
     <div>
+      <div className="background-root">
+        <ParticlesBackground particleCount={70} lineDistance={110} opacity={0.6} />
+      </div>
       <Navbar />
       <main className="container py-4">
         {/* Timer Controls */}
-        <section className="mb-4 text-center">
-          <div id="timer" className="display-5 my-3" aria-live="polite">
-            {formatTime(displayedTime)}
+        <section className="mb-4 text-center centered-element">
+          <div id="timer" className="display-5 my-3 " aria-live="polite">
+            <h1 className="timer-text">{formatTime(displayedTime)}</h1>
           </div>
 
-          <div className="btn-group" role="group">
+          <div className="d-flex justify-content-center gap-3">
             <button
               type="button"
               id="start-button"
-              className="btn btn-success"
+              className="timer-button start"
               onClick={handleStart}
             >
               Start
@@ -193,7 +197,7 @@ const TimerPage = () => {
             <button
               type="button"
               id="pause-button"
-              className="btn btn-warning"
+              className="timer-button pause"
               onClick={handlePause}
             >
               Pause
@@ -201,7 +205,7 @@ const TimerPage = () => {
             <button
               type="button"
               id="reset-button"
-              className="btn btn-danger"
+              className="timer-button reset"
               onClick={handleReset}
             >
               Reset

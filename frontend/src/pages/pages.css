@@ -55,3 +55,52 @@
   font-size: clamp(.75rem, 2vw, 1.5rem);
   text-align: left;
 }
+
+.timer-text {
+  color: var(--color-primary);
+  font-size: clamp(6rem, 12vw, 8rem);
+}
+
+.timer-button {
+  background: transparent;
+  border: 1px solid #e5e7eb; /* light gray */
+  color: #374151; /* neutral text */
+  padding: 0.6rem 1.4rem;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.timer-button:hover {
+  background: #f3f4f6; /* light hover */
+}
+
+.timer-button.start {
+  color: #2563eb; /* blue accent */
+  border-color: #2563eb;
+}
+
+.timer-button.start:hover {
+  background: #2563eb;
+  color: white;
+}
+
+.timer-button.pause {
+  color: #f59e0b; /* amber accent */
+  border-color: #f59e0b;
+}
+
+.timer-button.pause:hover {
+  background: #f59e0b;
+  color: white;
+}
+
+.timer-button.reset {
+  color: #ef4444; /* red accent */
+  border-color: #ef4444;
+}
+
+.timer-button.reset:hover {
+  background: #ef4444;
+  color: white;
+}

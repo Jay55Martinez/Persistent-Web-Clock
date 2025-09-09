@@ -35,7 +35,7 @@ const Navbar = () => {
   return (
     <nav className='navbar navbar-expand-lg background'>
       <div id="navbar-elements" className="container-fluid">
-        <a className="logo-text" style={{ paddingLeft: 15 }} href="/" >tankTimer</a>
+        <a className="logo-text" style={{ paddingLeft: 15, paddingTop: 10 }} href="/" >tankTimer</a>
         <div id="button-container" className="d-flex gap-3" style={{ paddingRight: 15}}>
           <button onClick={navigateTimerOrHome} className='pill-button'>{isOnTimerPage ? "Home" : "Timer"}</button>
           {user.isLoggedIn ? (
