@@ -8,10 +8,24 @@ import cookieParser from 'cookie-parser';
 dotenv.config();
 const app = express();
 
+// Allow multiple comma-separated origins via FRONTEND_ORIGIN
+const allowedOrigins = (process.env.FRONTEND_ORIGIN || 'http://localhost:5173')
+  .split(',')
+  .map((s) => s.trim().replace(/\/$/, ''))
+  .filter(Boolean);
+
 app.use(cors({
-  origin: process.env.FRONTEND_ORIGIN || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true); // non-browser clients like curl/postman
+    const clean = origin.replace(/\/$/, '');
+    if (allowedOrigins.includes(clean)) return callback(null, true);
+    return callback(new Error('CORS: Origin not allowed'), false);
+  },
   credentials: true,
 }));
+
+// Needed so secure cookies work behind Render/Proxies
+app.set('trust proxy', 1);
 
 app.use(cookieParser());
 app.use(express.json());
