@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import app from './app';
 import http from 'http';
+import userModel from './models/user.model';
 import { Server as SocketIOServer } from 'socket.io';
 // @ts-ignore: no types for 'cookie'
 import cookie from 'cookie';
@@ -25,28 +26,18 @@ app.set('io', io);
 
 
 // On connection, join the user-specific room
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
   // Access the userId from the socket handshake auth object
-  console.log('New socket connection:', socket.id);
-  const userId = socket.handshake.auth?.userId;
+  const user = await userModel.findOne({ email: socket.handshake.auth?.userEmail });
+  const userId = user?._id?.toString();
   if (userId) {
     socket.join(userId);
     console.log(`User ${userId} connected and joined room`);
   } else {
-    console.warn('No userId provided in socket handshake auth');
+    console.warn('No userEmail provided in socket handshake auth or user not found');
   }
-
-  socket.on('disconnect', (reason) => {
-    const userId = socket.handshake.auth?.userId;
-    if (userId) {
-      socket.leave(userId);
-      console.log(`User ${userId} disconnected and left room. Reason: ${reason}`);
-    } else {
-      console.warn('No userId provided in socket handshake auth on disconnect');
-    }
-  });
 });
- 
+
 
 // Start server
 server.listen(PORT, () => {
@@ -59,4 +50,4 @@ mongoose.connect(process.env.MONGO_URI!)
   .catch((err) => console.error('Mongo error:', err));
 
 // Export the io instance so controllers can use it
-export { io }; 
+export { io };

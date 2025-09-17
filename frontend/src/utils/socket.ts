@@ -14,9 +14,10 @@ const disconnectSocket = () => {
   }
 };
 
-const connectSocket = (userId?: string | null) => {
-  if (userId) {
-    socket.auth = { userId };
+const connectSocket = (userEmail?: string | null) => {
+  console.log(userEmail);
+  if (userEmail) {
+    socket.auth = { userEmail };
   }
   if (!socket.connected) {
     socket.connect();

@@ -64,6 +64,7 @@ const TimerPage = () => {
 
   // Connect to socket
   useEffect(() => {
+    console.log("Connecting socket for user:", user.email);
     connectSocket(user.email);
     return () => {
       disconnectSocket();
