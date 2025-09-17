@@ -91,7 +91,7 @@ const TimerPage = () => {
       }
     });
 
-    socket.on("timer:reset", (data) => {
+    socket.on("timer:reset", () => {
       // console.log("Timer reset", data);
       // update state to reset timer
       setIsRunning(false);
