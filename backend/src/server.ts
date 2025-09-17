@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { installConsole } from './logger';
 import app from './app';
 import http from 'http';
 import userModel from './models/user.model';
@@ -6,6 +7,9 @@ import { Server as SocketIOServer } from 'socket.io';
 // @ts-ignore: no types for 'cookie'
 import cookie from 'cookie';
 import jwt from 'jsonwebtoken';
+
+// Install JSON console output as early as possible so all logs are structured
+installConsole();
 
 const PORT = process.env.PORT || 5000;
 
@@ -18,12 +22,7 @@ const io = new SocketIOServer(server, {
   },
 });
 
-// BIG BUG: no matter what account I use the instances are always added to the same room
-// Very buggy and not sure if it works 
-// I really want it to work with multiple different users on the same browser
-// Attach io to Express and set up socket authentication & rooms
 app.set('io', io);
-
 
 // On connection, join the user-specific room
 io.on('connection', async (socket) => {
@@ -37,7 +36,6 @@ io.on('connection', async (socket) => {
     console.warn('No userEmail provided in socket handshake auth or user not found');
   }
 });
-
 
 // Start server
 server.listen(PORT, () => {
