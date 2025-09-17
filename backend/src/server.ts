@@ -15,9 +15,13 @@ const PORT = process.env.PORT || 5000;
 
 // Create HTTP server and attach Socket.IO
 const server = http.createServer(app);
+const ORIGINS = (process.env.FRONTEND_ORIGIN || 'http://localhost:5173')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
 const io = new SocketIOServer(server, {
   cors: {
-    origin: 'http://localhost:5173',
+    origin: ORIGINS,
     credentials: true,
   },
 });
