@@ -28,6 +28,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordResetTop, setShowPasswordResetTop] = useState(false);
+  const [rememberMe, setRememberMe] = useState<boolean>(false);
   const [showPasswordResetBottom, setShowPasswordResetBottom] = useState(false);
   const [verificationCode, setVerificationCode] = useState<number | undefined>(undefined);
   const [newPassword, setNewPassword] = useState("");
@@ -39,7 +40,7 @@ const LoginPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const normalizedEmail = email.trim().toLowerCase();
-    const resultAction = await dispatch(login({ email: normalizedEmail, password }));
+    const resultAction = await dispatch(login({ email: normalizedEmail, password, rememberMe }));
     if (login.fulfilled.match(resultAction)) {
       disconnectSocket();
       connectSocket(resultAction.payload.user.id);
@@ -104,7 +105,7 @@ const LoginPage = () => {
     }
 
     try {
-      const resultAction = await dispatch(resetPassword({ email: normalizedEmail, code: verificationCode, password: newPassword }));
+      const resultAction = await dispatch(resetPassword({ email: normalizedEmail, code: verificationCode, password: newPassword, rememberMe }));
       if (resetPassword.fulfilled.match(resultAction)) {
         disconnectSocket();
         connectSocket(resultAction.payload.user.id);
@@ -189,6 +190,7 @@ const LoginPage = () => {
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
               </div>
+              <input type="checkbox" checked={rememberMe} onChange={() => setRememberMe(!rememberMe)} style={{ marginTop: '10px' }}/> Remember Me
               <br />
               <button
                 type="button"

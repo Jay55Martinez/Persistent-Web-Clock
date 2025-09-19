@@ -1,7 +1,7 @@
 import {api, safeAPIcall} from './axios';
 
-export const loginUser = async (email: string, password: string) => {
-  const response = await api.post('/auth/login', { email, password });
+export const loginUser = async (email: string, password: string, rememberMe: boolean) => {
+  const response = await api.post('/auth/login', { email, password, rememberMe });
   return response;
 };
 
@@ -20,8 +20,8 @@ export const verifyAuth = async () => {
   return response;
 };
 
-export const verifyAccount = async (email: string, code: string) => {
-  const response = await api.post('/auth/verify', { email, code });
+export const verifyAccount = async (email: string, code: string, rememberMe: boolean) => {
+  const response = await api.post('/auth/verify', { email, code, rememberMe });
   return response;
 };
 
@@ -30,8 +30,8 @@ export const resendVerification = async (email: string) => {
   return response;
 };
 
-export const resetPassword = async (email: string, password: string, code: number) => {
-  const response = await api.post('/auth/reset-password', { email, password, code });
+export const resetPassword = async (email: string, password: string, code: number, rememberMe: boolean) => {
+  const response = await api.post('/auth/reset-password', { email, password, code, rememberMe });
   return response;
 };
 

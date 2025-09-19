@@ -16,9 +16,9 @@ const initialState: UserState = {
 };
 
 // Thunks
-export const login = createAsyncThunk("auth/login", async ({ email, password }: { email: string; password: string }, thunkAPI) => {
+export const login = createAsyncThunk("auth/login", async ({ email, password, rememberMe }: { email: string; password: string; rememberMe: boolean}, thunkAPI) => {
     try {
-        const response = await loginUser(email, password);
+        const response = await loginUser(email, password, rememberMe);
         if (response.status === 200) {
             return response.data.user;
         } else {
@@ -55,9 +55,9 @@ export const signup = createAsyncThunk("auth/signup", async ({ email, password }
     }
 });
 
-export const verify = createAsyncThunk("auth/verify", async ({ email, code }: { email: string; code: string }, thunkAPI) => {
+export const verify = createAsyncThunk("auth/verify", async ({ email, code, rememberMe }: { email: string; code: string; rememberMe: boolean }, thunkAPI) => {
     try {
-        const response = await verifyAccount(email, code);
+        const response = await verifyAccount(email, code, rememberMe);
         if (response.status === 200) {
             return response.data.user;
         } else {
@@ -86,9 +86,9 @@ export const resendVerification = createAsyncThunk<any, string>(
 
 export const resetPassword = createAsyncThunk(
     "auth/resetPassword",
-    async ({ email, password, code }: { email: string; password: string; code: number }, thunkAPI) => {
+    async ({ email, password, code, rememberMe }: { email: string; password: string; code: number; rememberMe: boolean }, thunkAPI) => {
         try {
-            const response = await resetPasswordApi(email, password, code);
+            const response = await resetPasswordApi(email, password, code, rememberMe);
             if (response.status === 200) {
                 return response.data.user;
             } else {

@@ -171,12 +171,12 @@ export const verifyResend = async (req: Request, res: Response) => {
  * Handles the verification of a user account. If the req code matches the stored code and is not expired,
  * the user's account is marked as verified. And the user is logged in upon successful verification. The 
  * User is also issued a JWT token stored in an HttpOnly cookie.
- * @param req - Contains email and verification code in the body.
+ * @param req - Contains email and verification code in the body. RememberMe is optional.
  * @param res - Sends back a JSON response if the verification was successful or an error message.
  * @returns A JSON response indicating the result of the operation.
  */
 export const verifyAccount = async (req: Request, res: Response) => {
-  const { email, code } = req.body;
+  const { email, code, rememberMe } = req.body;
   const emailNormalized = email.toLowerCase();
 
   const verificationCode = await Code.findOne({
@@ -200,9 +200,8 @@ export const verifyAccount = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "User already verified." });
     }
 
-    // todo: have a remember me option later - 7 days
     const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET!, {
-      expiresIn: "1h",
+      expiresIn: rememberMe ? "7d" : "1h",
     });
 
     const accessToken = jwt.sign({ userId: user._id }, process.env.JWT_ACCESS_SECRET!, {
@@ -229,7 +228,7 @@ export const verifyAccount = async (req: Request, res: Response) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-        maxAge: 1 * 60 * 60 * 1000, // 1 hour
+        maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : 1 * 60 * 60 * 1000,
       })
       .json({
         user: {
@@ -246,12 +245,12 @@ export const verifyAccount = async (req: Request, res: Response) => {
 /**
  * Handles user login. If req credentials are valid and the user is verified (and not locked out),
  * the user is logged in and issued a JWT token stored in an HttpOnly cookie.
- * @param req - Contains email and password in the body.
+ * @param req - Contains email and password in the body. RememberMe is optional.
  * @param res - Sends back a JSON response if the login was successful or an error message.
  * @returns A JSON response indicating the result of the operation.
  */
 export const login = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const { email, password, rememberMe } = req.body;
   const normalizedEmail = email.toLowerCase();
 
   try {
@@ -319,9 +318,8 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    // todo: have a remember me option later - 7 days
     const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET!, {
-      expiresIn: "1h",
+      expiresIn: rememberMe ? "7d" : "1h",
     });
 
     const accessToken = jwt.sign({ userId: user._id }, process.env.JWT_ACCESS_SECRET!, {
@@ -349,7 +347,7 @@ export const login = async (req: Request, res: Response) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-        maxAge: 1 * 60 * 60 * 1000, // 1 hour
+        maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : 1 * 60 * 60 * 1000,
       })
       .json({
         user: {
@@ -481,13 +479,14 @@ export const verifyResetCode = async (req: Request, res: Response) => {
 
 /**
  * Resets the password for the user with the email and correct code.
- * @param {Request} req - Express request object containing email, code, and new password in the body.
+ * @param {Request} req - Express request object containing email, code, and new password in the body. RememberMe is optional.
  * @param {Response} res - Express response object for sending status and messages.
  */
 export const resetPassword = async (req: Request, res: Response) => {
   try {
     const emailNormalized = req.body.email.toLowerCase();
     const code = req.body.code;
+    const rememberMe = req.body.rememberMe || false;
 
     // check if code is valid
     const existingCode = await Code.findOne({
@@ -519,9 +518,8 @@ export const resetPassword = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "New password must be different from the old one." });
     }
 
-    // todo: have a remember me option later - 7 days
     const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET!, {
-      expiresIn: "1h",
+      expiresIn: rememberMe ? "7d" : "1h",
     });
 
     const accessToken = jwt.sign({ userId: user._id }, process.env.JWT_ACCESS_SECRET!, {
@@ -555,7 +553,7 @@ export const resetPassword = async (req: Request, res: Response) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-        maxAge: 1 * 60 * 60 * 1000, // 1 hour
+        maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : 1 * 60 * 60 * 1000,
       })
       .json({
         user: {

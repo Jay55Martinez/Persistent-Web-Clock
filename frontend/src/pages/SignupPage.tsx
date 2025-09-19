@@ -12,6 +12,7 @@ const SignupPage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false); // Always remember user on signup
   const [verificationCode, setVerificationCode] = useState("");
   const [error, setError] = useState("");
   const [verifyAccount, setVerifyAccount] = useState(false);
@@ -70,7 +71,7 @@ const SignupPage = () => {
         return;
       }
       // TODO: Add verification logic here
-      const result = await dispatch(verify({ email, code: verificationCode }));
+      const result = await dispatch(verify({ email, code: verificationCode, rememberMe }));
       if (result.meta.requestStatus === 'fulfilled') {
         navigate("/timer");
       }
@@ -161,6 +162,7 @@ const SignupPage = () => {
                   >
                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                   </button>
+                  <input type="checkbox" checked={rememberMe} onChange={() => setRememberMe(!rememberMe)} style={{ marginTop: '10px' }}/> Remember Me
                 </div>
                 <br />
               </>
