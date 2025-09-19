@@ -11,7 +11,7 @@ describe("Timer Integration Tests", () => {
     // Use 'userId' to match what the auth controller creates
     const token = jwt.sign(
       { userId: mockUserId },
-      process.env.JWT_SECRET || "test-secret",
+      process.env.JWT_ACCESS_SECRET || "test-secret",
       {
         expiresIn: "1h",
       }
@@ -37,7 +37,7 @@ describe("Timer Pause Tests", () => {
     const mockUserId = "64abc1234567890abcdef123";
     const token = jwt.sign(
       { userId: mockUserId },
-      process.env.JWT_SECRET || "test-secret",
+      process.env.JWT_ACCESS_SECRET || "test-secret",
       {
         expiresIn: "1h",
       }
@@ -74,7 +74,7 @@ describe("Timer Reset Tests", () => {
     const mockUserId = "64abc1234567890abcdef123";
     const token = jwt.sign(
       { userId: mockUserId },
-      process.env.JWT_SECRET || "test-secret",
+      process.env.JWT_ACCESS_SECRET || "test-secret",
       {
         expiresIn: "1h",
       }
@@ -112,7 +112,7 @@ describe("Timer Status Tests", () => {
     const mockUserId = "64abc1234567890abcdef123";
     const token = jwt.sign(
       { userId: mockUserId },
-      process.env.JWT_SECRET || "test-secret",
+      process.env.JWT_ACCESS_SECRET || "test-secret",
       {
         expiresIn: "1h",
       }
@@ -142,7 +142,7 @@ describe("Timer Status Tests", () => {
     const mockUserId = "64abc1234567890abcdef123";
     const token = jwt.sign(
       { userId: mockUserId },
-      process.env.JWT_SECRET || "test-secret",
+      process.env.JWT_ACCESS_SECRET || "test-secret",
       {
         expiresIn: "1h",
       }
@@ -184,7 +184,7 @@ describe("Timer Status Tests", () => {
       const mockUserId = "64abc1234567890abcdef123";
       const token = jwt.sign(
       { userId: mockUserId },
-      process.env.JWT_SECRET || "test-secret",
+      process.env.JWT_ACCESS_SECRET || "test-secret",
       {
         expiresIn: "1h",
       }

@@ -201,11 +201,11 @@ export const verifyAccount = async (req: Request, res: Response) => {
     }
 
     // todo: have a remember me option later - 7 days
-    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
+    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET!, {
       expiresIn: "1h",
     });
 
-    const accessToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
+    const accessToken = jwt.sign({ userId: user._id }, process.env.JWT_ACCESS_SECRET!, {
       expiresIn: "15m",
     });
 
@@ -320,11 +320,11 @@ export const login = async (req: Request, res: Response) => {
     }
 
     // todo: have a remember me option later - 7 days
-    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
+    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET!, {
       expiresIn: "1h",
     });
 
-    const accessToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
+    const accessToken = jwt.sign({ userId: user._id }, process.env.JWT_ACCESS_SECRET!, {
       expiresIn: "15m",
     });
 
@@ -363,19 +363,41 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-// todo - handle logout with access token and refresh token invalidation
+/**
+ * Handles user logout by invalidating the refresh token, updating the user's isLoggedIn status,
+ * and clearing authentication cookies.
+ * @param req - Express request object containing cookies with the refresh token.
+ * @param res - Express response object for sending status and user information.
+ * @returns A JSON response with user details or an error message.
+ */
 export const logout = async (req: Request, res: Response) => {
-  const email = req.body.email.toLowerCase();
-  const user = await User.findOne({ email: email });
-  if (user && user.isLoggedIn) {
-    user.isLoggedIn = false; // Update user's isLoggedIn status
-    await user.save();
-  } else {
+  if (!req.cookies || !req.cookies.refreshToken) {
     return res.status(400).json({ error: "User not logged in." });
   }
+  const refreshToken = req.cookies.refreshToken;
+  let user = await User.findOne({ RefreshToken: refreshToken });
+  if (!user) {
+    return res.status(400).json({ error: "User not logged in." });
+  }
+    user.RefreshToken = undefined;
+  user.RefreshToken = null;
+  user.isLoggedIn = false; // Update user's isLoggedIn status
+  await user.save();
+
   res
     .status(200)
-    .clearCookie("token")
+    .clearCookie("accessToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/"
+    })
+    .clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/"
+    })
     .json({
       user: {
         email: user.email,
@@ -498,11 +520,11 @@ export const resetPassword = async (req: Request, res: Response) => {
     }
 
     // todo: have a remember me option later - 7 days
-    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
+    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET!, {
       expiresIn: "1h",
     });
 
-    const accessToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
+    const accessToken = jwt.sign({ userId: user._id }, process.env.JWT_ACCESS_SECRET!, {
       expiresIn: "15m",
     });
 

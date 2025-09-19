@@ -1,4 +1,4 @@
-import api from './axios';
+import {api, safeAPIcall} from './axios';
 
 export const loginUser = async (email: string, password: string) => {
   const response = await api.post('/auth/login', { email, password });
@@ -10,13 +10,13 @@ export const signupUser = async (email: string, password: string) => {
   return response;
 };
 
-export const logoutUser = async (email: string) => {
-  const response = await api.post('/auth/logout', { email });
+export const logoutUser = async () => {
+  const response = await api.post('/auth/logout');
   return response;
 };
 
 export const verifyAuth = async () => {
-  const response = await api.get('/auth/me');
+  const response = await safeAPIcall(() => api.get('/auth/me'));
   return response;
 };
 

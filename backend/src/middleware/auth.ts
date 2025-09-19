@@ -17,6 +17,7 @@ const cookieOpts = {
   sameSite: (isProd ? 'none' : 'lax') as any,
 };
 
+// todo: not sure if this needs to be access token or refresh token
 // AuthN middleware: prefer HttpOnly cookie 'accessToken', fall back to Bearer token
 export const authenticateUser = (req: Request, res: Response, next: NextFunction) => {
   let token = req.cookies?.accessToken;
@@ -31,7 +32,7 @@ export const authenticateUser = (req: Request, res: Response, next: NextFunction
   if (!token) return res.status(401).json({ message: 'No token provided' });
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET!) as JwtPayload;
     req.user = { id: decoded.userId };
     next();
   } catch {
@@ -45,16 +46,16 @@ export const refreshToken = async (req: Request, res: Response) => {
   if (!rt) return res.status(401).json({ message: 'No refresh token provided' });
 
   try {
-    const decoded = jwt.verify(rt, process.env.JWT_SECRET!) as JwtPayload;
+    const decoded = jwt.verify(rt, process.env.JWT_REFRESH_SECRET!) as JwtPayload;
     const user = await User.findOne({ _id: decoded.userId, RefreshToken: rt });
     if (!user) return res.status(401).json({ message: 'Invalid refresh token' });
 
     // Issue new access token
-    const newAccessToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, { expiresIn: '15m' });
+    const newAccessToken = jwt.sign({ userId: user._id }, process.env.JWT_ACCESS_SECRET!, { expiresIn: '15m' });
 
     // todo: have a remember me option later - 7 days
     // Rotate refresh token
-    const newRefreshToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, { expiresIn: '1h' });
+    const newRefreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET!, { expiresIn: '1h' });
     user.RefreshToken = newRefreshToken;
     await user.save();
 

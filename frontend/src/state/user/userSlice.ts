@@ -29,9 +29,9 @@ export const login = createAsyncThunk("auth/login", async ({ email, password }: 
     }
 });
 
-export const logout = createAsyncThunk("auth/logout", async (email: string, thunkAPI) => {
+export const logout = createAsyncThunk("auth/logout", async (_, thunkAPI) => {
     try {
-        const response = await logoutUser(email);
+        const response = await logoutUser();
         if (response.status === 200) {
             return response.data.user;
         } else {
