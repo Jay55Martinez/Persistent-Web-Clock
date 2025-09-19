@@ -7,6 +7,14 @@ import Code from "../models/verificationCode.model";
 import { generateVerificationCode } from "../utils/auth.utils";
 import transporter from "../email/transporter";
 
+/**
+ * Handles user signup. Creates a User and sends a verification code to the user's email. 
+ * The verification code is stored in the database with an expiration time. If the User does
+ * not verify within the expiration time, the new user will be deleted from the database.
+ * @param req - Contains email and password in the body.
+ * @param res - Sends back a JSON response if the signup was successful or an error message.
+ * @returns A JSON response with user information or an error message. 
+ */
 export const signup = async (req: Request, res: Response) => {
   const { email, password } = req.body;
   const emailNormalized = email.toLowerCase();
@@ -53,6 +61,7 @@ export const signup = async (req: Request, res: Response) => {
           expiresAt: new Date(Date.now() + expirationTime * 60 * 1000),
         });
       }
+
       // Then send the email
       await transporter.sendMail({
         from: process.env.GMAIL_USER,
@@ -60,6 +69,7 @@ export const signup = async (req: Request, res: Response) => {
         subject: "Verification Code",
         text: `Your verification code is: ${codeNew}`,
       });
+
     } catch (error) {
       // Optionally log or handle errors
       console.error("Error during email verification:", error);
@@ -91,6 +101,12 @@ export const signup = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * Handles resending the verification email for verifying a new user account.
+ * @param req - Contains email in the body.
+ * @param res - Sends back a JSON response if the email was resent successfully or an error message.
+ * @returns A JSON response indicating the result of the operation.
+ */
 export const verifyResend = async (req: Request, res: Response) => {
   const { email } = req.body;
   const emailNormalized = email.toLowerCase();
@@ -151,6 +167,14 @@ export const verifyResend = async (req: Request, res: Response) => {
   });
 };
 
+/**
+ * Handles the verification of a user account. If the req code matches the stored code and is not expired,
+ * the user's account is marked as verified. And the user is logged in upon successful verification. The 
+ * User is also issued a JWT token stored in an HttpOnly cookie.
+ * @param req - Contains email and verification code in the body.
+ * @param res - Sends back a JSON response if the verification was successful or an error message.
+ * @returns A JSON response indicating the result of the operation.
+ */
 export const verifyAccount = async (req: Request, res: Response) => {
   const { email, code } = req.body;
   const emailNormalized = email.toLowerCase();
@@ -175,23 +199,37 @@ export const verifyAccount = async (req: Request, res: Response) => {
     } else if (user.isVerified) {
       return res.status(400).json({ error: "User already verified." });
     }
+
+    // todo: have a remember me option later - 7 days
+    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
+      expiresIn: "1h",
+    });
+
+    const accessToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
+      expiresIn: "15m",
+    });
+
     user.isVerified = true;
     user.isLoggedIn = true; // Set isLoggedIn to true upon successful verification
+    user.RefreshToken = refreshToken;
+
     await user.save();
-
     await verificationCode.deleteOne(); // Remove the code after successful verification
-
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
-      expiresIn: "7d",
-    });
 
     res
       .status(200)
-      .cookie("token", token, {
+      .cookie(
+        "accessToken", accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        maxAge: 15 * 60 * 1000, // 15 minutes
+      })
+      .cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        maxAge: 1 * 60 * 60 * 1000, // 1 hour
       })
       .json({
         user: {
@@ -205,6 +243,13 @@ export const verifyAccount = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * Handles user login. If req credentials are valid and the user is verified (and not locked out),
+ * the user is logged in and issued a JWT token stored in an HttpOnly cookie.
+ * @param req - Contains email and password in the body.
+ * @param res - Sends back a JSON response if the login was successful or an error message.
+ * @returns A JSON response indicating the result of the operation.
+ */
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
   const normalizedEmail = email.toLowerCase();
@@ -216,7 +261,6 @@ export const login = async (req: Request, res: Response) => {
     }
     // Checking if the User is verified
     else if (!user.isVerified) {
-      // TODO: Add logic here that brings user to the verify page
       return res.status(424).json({ error: "Current user not verified" });
     }
     // User locked out and not enough time has passed
@@ -274,6 +318,18 @@ export const login = async (req: Request, res: Response) => {
       await user.save();
       return res.status(401).json({ error: "Invalid credentials" });
     }
+
+    // todo: have a remember me option later - 7 days
+    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
+      expiresIn: "1h",
+    });
+
+    const accessToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
+      expiresIn: "15m",
+    });
+
+    user.RefreshToken = refreshToken;
+
     await user.save();
 
     // Update user's isLoggedIn status
@@ -281,17 +337,19 @@ export const login = async (req: Request, res: Response) => {
     user.loginAttempts = 0; // Reset loginAttempts on successful login
     await user.save();
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
-      expiresIn: "7d",
-    });
-
     res
       .status(200)
-      .cookie("token", token, {
+      .cookie("accessToken", accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        maxAge: 15 * 60 * 1000, // 15 minutes
+      })
+      .cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        maxAge: 1 * 60 * 60 * 1000, // 1 hour
       })
       .json({
         user: {
@@ -305,6 +363,7 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
+// todo - handle logout with access token and refresh token invalidation
 export const logout = async (req: Request, res: Response) => {
   const email = req.body.email.toLowerCase();
   const user = await User.findOne({ email: email });
@@ -438,6 +497,17 @@ export const resetPassword = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "New password must be different from the old one." });
     }
 
+    // todo: have a remember me option later - 7 days
+    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
+      expiresIn: "1h",
+    });
+
+    const accessToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
+      expiresIn: "15m",
+    });
+
+    user.RefreshToken = refreshToken;
+
     // Log the User in 
     user.isLoggedIn = true;
 
@@ -451,17 +521,19 @@ export const resetPassword = async (req: Request, res: Response) => {
     await user.save();
     await existingCode.deleteOne();
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
-      expiresIn: "7d",
-    });
-
     res
       .status(200)
-      .cookie("token", token, {
+      .cookie("accessToken", accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        maxAge: 15 * 60 * 1000, // 15 minutes
+      })
+      .cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        maxAge: 1 * 60 * 60 * 1000, // 1 hour
       })
       .json({
         user: {

@@ -16,7 +16,7 @@ export const logoutUser = async (email: string) => {
 };
 
 export const verifyAuth = async () => {
-  const response = await api.get('/auth/authme');
+  const response = await api.get('/auth/me');
   return response;
 };
 

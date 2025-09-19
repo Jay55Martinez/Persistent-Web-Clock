@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import useAuthRedirect from "../hooks/useAuthRedirect";
 import { checkIfValidPassword, isValidEmail } from "../utils/signup.util";
 import { useDispatch } from "react-redux";
 import { signup, verify, resendVerification } from "../state/user/userSlice";
@@ -10,8 +9,6 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import ParticlesBackground from "../components/ParticlesBackground";
 
 const SignupPage = () => {
-  useAuthRedirect();
-
   const dispatch = useDispatch<AppDispatch>();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

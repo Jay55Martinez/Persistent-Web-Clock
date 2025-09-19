@@ -12,6 +12,6 @@ router.post('/logout', logout as express.RequestHandler);
 router.post('/request-password-reset', requestPasswordReset as express.RequestHandler);
 router.post('/verify-reset-code', verifyResetCode as express.RequestHandler)
 router.post('/reset-password', resetPassword as express.RequestHandler)
-router.get('/authme', authenticateUser as any, verifyAuth as express.RequestHandler);
+router.get('/me', authenticateUser as any, verifyAuth as express.RequestHandler);
 
 export default router;

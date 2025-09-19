@@ -18,21 +18,22 @@ export const startTimer = async (req: Request, res: Response) => {
   const userId = req.user.id;
 
   try {
-    if (!req.body.isRunning) {
-      const timer = await Timer.findOneAndUpdate(
-        { userId },
-        { startTime: new Date(), isRunning: true },
-        { upsert: true, new: true }
-      );
-
-      // Emit socket event to user-specific room
-      const io = req.app.get('io');
-      io?.to(userId).emit('timer:started', timer);
-
-      return res.status(200).json(timer);
-    } else {
+    const existingTimer = await Timer.findOne({ userId });
+    if (existingTimer?.isRunning) {
       return res.status(204).json({ message: "Timer is already running" });
     }
+
+    const timer = await Timer.findOneAndUpdate(
+      { userId },
+      { startTime: new Date(), isRunning: true },
+      { upsert: true, new: true }
+    );
+
+    // Emit socket event to user-specific room
+    const io = req.app.get('io');
+    io?.to(userId).emit('timer:started', timer);
+
+    return res.status(200).json(timer);
   } catch (error) {
     return res.status(500).json({ error: "Failed to start timer" });
   }

@@ -130,7 +130,7 @@ const TimerPage = () => {
       }
 
       // Send request to start timer if the timer is not running
-      const data = await startTimer(isRunning);
+      const data = await startTimer();
 
       // If the timer was successfully started, update state
       if (data) {

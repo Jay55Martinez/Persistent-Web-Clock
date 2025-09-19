@@ -85,8 +85,9 @@ describe("startTimer", () => {
       startTime: originalStartTime,
       totalElapsed: 15,
     };
-    // Timer is already running
-    req.body = { isRunning: true };
+
+    // Mock DB to show timer already running for this user
+    (Timer.findOne as jest.Mock).mockResolvedValue(mockTimer);
 
     await startTimer(req as Request, res as Response);
 
@@ -95,6 +96,9 @@ describe("startTimer", () => {
     expect(json).toHaveBeenCalledWith({
       message: "Timer is already running"
     });
+
+    // Ensure we did not attempt to update the timer
+    expect(Timer.findOneAndUpdate).not.toHaveBeenCalled();
   });
 });
 

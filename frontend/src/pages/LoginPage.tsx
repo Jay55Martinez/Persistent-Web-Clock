@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import useAuthRedirect from "../hooks/useAuthRedirect";
 import { connectSocket, disconnectSocket } from "../utils/socket";
 import { useDispatch } from "react-redux";
 import { requestPasswordReset, verifyResetCode } from "../api/auth";
@@ -36,8 +35,6 @@ const LoginPage = () => {
   const [formError, setFormError] = useState("");
   const [pageState, setPageState] = useState<typeof PageState[keyof typeof PageState]>(PageState.Login);
   const navigate = useNavigate();
-
-  useAuthRedirect();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

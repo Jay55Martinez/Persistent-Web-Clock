@@ -32,6 +32,11 @@ const UserSchema = new mongoose.Schema({
     required: true,
     default: 0,
   },
+  RefreshToken: {
+    type: String,
+    required: false,
+    default: null,
+  },
   durationLocked: Date,
   verificationTokenExpires: Date,
 });
