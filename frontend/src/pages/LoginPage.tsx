@@ -7,8 +7,9 @@ import { login, resetPassword } from "../state/user/userSlice";
 import { checkIfValidPassword } from "../utils/signup.util";
 import type { AppDispatch } from "../state/store";
 import ParticlesBackground from "../components/ParticlesBackground";
+import PasswordToggle from "../components/PasswordToggle";
+import VerificationCodeInput from "../components/VerificationCodeInput";
 // Icons
-import { FaEye, FaEyeSlash } from "react-icons/fa";
 // Style
 import "./pages.css";
 
@@ -46,8 +47,9 @@ const LoginPage = () => {
       login({ email: normalizedEmail, password, rememberMe })
     );
     if (login.fulfilled.match(resultAction)) {
+      const user = resultAction.payload as { email?: string | null };
       disconnectSocket();
-      connectSocket(resultAction.payload.user.id);
+      connectSocket(user?.email ?? null);
       navigate("/timer");
     } else {
       alert("Invalid Password!");
@@ -123,8 +125,9 @@ const LoginPage = () => {
         })
       );
       if (resetPassword.fulfilled.match(resultAction)) {
+        const user = resultAction.payload as { email?: string | null };
         disconnectSocket();
-        connectSocket(resultAction.payload.user.id);
+        connectSocket(user?.email ?? null);
         navigate("/timer");
       } else {
         setFormError("Failed to reset password. Please try again.");
@@ -133,38 +136,6 @@ const LoginPage = () => {
       setFormError("Error resetting password. Please try again.");
     }
   };
-
-  // Reusable password toggle button component
-  const PasswordToggle = ({
-    show,
-    setShow,
-  }: {
-    show: boolean;
-    setShow: (v: boolean) => void;
-  }) => (
-    <button
-      type="button"
-      onMouseDown={() => setShow(true)}
-      onMouseUp={() => setShow(false)}
-      onMouseLeave={() => setShow(false)}
-      style={{
-        position: "absolute",
-        right: "0rem",
-        top: "50%",
-        transform: "translateY(-50%)",
-        background: "none",
-        border: "none",
-        cursor: "pointer",
-      }}
-      aria-label={show ? "Hide password" : "Show password"}
-    >
-      {show ? (
-        <FaEyeSlash style={{ color: "black" }} />
-      ) : (
-        <FaEye style={{ color: "black" }} />
-      )}
-    </button>
-  );
 
   return (
     <div
@@ -322,76 +293,11 @@ const LoginPage = () => {
             <form onSubmit={checkVerificationCode}>
               <h1>Reset Password</h1>
               <h4>Enter the code you received</h4>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  gap: "0.5rem",
-                  margin: "0.5rem 0",
-                }}
-              >
-                {Array.from({ length: 6 }).map((_, idx) => (
-                  <input
-                    key={idx}
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    maxLength={1}
-                    className="text-center form-control head-padding"
-                    style={{
-                      width: "2.5rem",
-                      height: "2.5rem",
-                      fontSize: "1.25rem",
-                    }}
-                    value={verificationCode[idx] ?? ""}
-                    onPaste={(e) => {
-                      e.preventDefault();
-                      const pasted = e.clipboardData.getData("text") || "";
-                      const digits = pasted.replace(/\D/g, "").slice(0, 6);
-                      if (!digits) return;
-                      const filled = Array.from({ length: 6 }).map(
-                        (_, i) => digits[i] ?? ""
-                      );
-                      setVerificationCode(filled.join(""));
-                      // focus the next input after pasted digits (or last)
-                      const inputs = (
-                        e.currentTarget.parentElement as HTMLElement
-                      ).querySelectorAll("input");
-                      const focusIdx = Math.min(digits.length, 5);
-                      if (inputs[focusIdx])
-                        (inputs[focusIdx] as HTMLInputElement).focus();
-                    }}
-                    onChange={(e) => {
-                      const ch = e.target.value
-                        .replace(/[^0-9]/g, "")
-                        .slice(-1);
-                      const newCode = verificationCode.split("");
-                      newCode[idx] = ch;
-                      const joined = newCode.join("").slice(0, 6);
-                      setVerificationCode(joined);
-                      // move focus to next input if available
-                      const inputs = (
-                        e.currentTarget.parentElement as HTMLElement
-                      ).querySelectorAll("input");
-                      if (ch && inputs[idx + 1]) {
-                        (inputs[idx + 1] as HTMLInputElement).focus();
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Backspace") {
-                        const newCode = verificationCode.split("");
-                        newCode[idx] = "";
-                        setVerificationCode(newCode.join(""));
-                        const inputs = (
-                          e.currentTarget.parentElement as HTMLElement
-                        ).querySelectorAll("input");
-                        if (inputs[idx - 1]) {
-                          (inputs[idx - 1] as HTMLInputElement).focus();
-                        }
-                      }
-                    }}
-                  />
-                ))}
-              </div>
+              <VerificationCodeInput
+                value={verificationCode}
+                onChange={setVerificationCode}
+                length={6}
+              />
               <div
                 id="button-group"
                 style={{

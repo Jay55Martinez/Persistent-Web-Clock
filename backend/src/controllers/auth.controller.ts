@@ -6,6 +6,7 @@ import { checkIfValidPassword } from "../utils/auth.utils"; // Assuming this is 
 import Code from "../models/verificationCode.model";
 import { generateVerificationCode } from "../utils/auth.utils";
 import transporter from "../email/transporter";
+import { ref } from "process";
 
 /**
  * Handles user signup. Creates a User and sends a verification code to the user's email. 
@@ -200,12 +201,19 @@ export const verifyAccount = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "User already verified." });
     }
 
-    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET!, {
-      expiresIn: rememberMe ? "7d" : "1h",
-    });
+    if (!process.env.JWT_REFRESH_SECRET) {
+      return res.status(500).json({ error: "JWT refresh secret is not set in environment variables." });
+    }
 
-    const accessToken = jwt.sign({ userId: user._id }, process.env.JWT_ACCESS_SECRET!, {
+    if (!process.env.JWT_ACCESS_SECRET) {
+      return res.status(500).json({ error: "JWT access secret is not configured." });
+    }
+
+    const accessToken = jwt.sign({ userId: user._id }, process.env.JWT_ACCESS_SECRET, {
       expiresIn: "15m",
+    });
+    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET, {
+      expiresIn: rememberMe ? "7d" : "1h",
     });
 
     user.isVerified = true;
@@ -318,7 +326,11 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET!, {
+    if (!process.env.JWT_REFRESH_SECRET) {
+      return res.status(500).json({ error: "JWT refresh secret is not set in environment variables." });
+    }
+
+    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET, {
       expiresIn: rememberMe ? "7d" : "1h",
     });
 

@@ -5,7 +5,8 @@ import { useDispatch } from "react-redux";
 import { signup, verify, resendVerification } from "../state/user/userSlice";
 import type { AppDispatch } from "../state/store";
 // Icons
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import PasswordToggle from "../components/PasswordToggle";
+import VerificationCodeInput from "../components/VerificationCodeInput";
 import ParticlesBackground from "../components/ParticlesBackground";
 
 const SignupPage = () => {
@@ -31,7 +32,7 @@ const SignupPage = () => {
   const handlePasswordChange = (value: string) => {
     setPassword(value);
     setPasswordValidations({
-      length: password.length >= 12,
+  length: value.length >= 12,
       upper: /[A-Z]/.test(value),
       lower: /[a-z]/.test(value),
       number: /[0-9]/.test(value),
@@ -117,12 +118,17 @@ const SignupPage = () => {
       <div id="card-container" className="card p-5 shadow">
         <div id="text-align" className="text-center">
           <form onSubmit={handleSubmit}>
-            <h1>Tank Timer</h1>
-            <h4>
-              {verifyAccount
-                ? "Enter verification code"
-                : "Sign up for Tank Timer"}
-            </h4>
+            {verifyAccount ? (
+              <>
+                <h1>Verify Account</h1>
+                <h4>Enter the code you received</h4>
+              </>
+            ) : (
+              <>
+                <h1>Tank Timer</h1>
+                <h4>Sign up for Tank Timer</h4>
+              </>
+            )}
             {!verifyAccount ? (
               <>
                 <input
@@ -133,7 +139,8 @@ const SignupPage = () => {
                   value={email}
                   required
                   onChange={(e) => setEmail(e.target.value)}
-                />
+                /> 
+                <div>
                 <br />
                 <div style={{ position: "relative" }}>
                   <input
@@ -145,112 +152,98 @@ const SignupPage = () => {
                     required
                     onChange={(e) => handlePasswordChange(e.target.value)}
                   />
-                  <button
-                    type="button"
-                    onMouseDown={() => setShowPassword(true)}
-                    onMouseUp={() => setShowPassword(false)}
-                    onMouseLeave={() => setShowPassword(false)}
-                    style={{
-                      position: "absolute",
-                      right: "0.5rem",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                    }}
-                  >
-                    {showPassword ? <FaEyeSlash style={{ color: 'black' }} /> : <FaEye style={{ color: 'black' }} />}
-                  </button>
-                  <input type="checkbox" checked={rememberMe} onChange={() => setRememberMe(!rememberMe)} style={{ marginTop: '10px' }}/> Remember Me
+                  <PasswordToggle show={showPassword} setShow={setShowPassword} />
                 </div>
-                <br />
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
+                    <label
+                      style={{
+                      display: "flex",
+                      alignItems: "center",
+                      cursor: "pointer",
+                      }}
+                    >
+                      <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={() => setRememberMe(!rememberMe)}
+                      style={{ marginRight: "5px" }}
+                      />
+                      Remember Me
+                    </label>
+                  </div>
+                </div>
               </>
             ) : (
               <>
-                <input
-                  id="information-input-code"
-                  className="input-group mb-2 head-padding form-control shadow"
-                  type="number"
-                  placeholder="Enter verification code*"
+                <VerificationCodeInput
                   value={verificationCode}
-                  required
-                  onChange={(e) => setVerificationCode(e.target.value)}
+                  onChange={setVerificationCode}
+                  length={6}
                 />
                 <br />
               </>
             )}
-            {/* Password requirements - only show during signup */}
+            {/* Password requirements - styled like LoginPage using theme.css */}
             {!verifyAccount && password !== "" && (
-              <div style={{ fontSize: "0.9rem", marginTop: "0.5rem" }}>
-                <p
-                  style={{
-                    color: passwordValidations.length ? "green" : "red",
-                  }}
-                >
+              <div className="password-requirements">
+                <h5>Password requirements</h5>
+                <div className={`requirement ${passwordValidations.length ? 'met' : 'unmet'}`}>
                   At least 12 characters
-                </p>
-                <p
-                  style={{
-                    color: passwordValidations.upper ? "green" : "red",
-                  }}
-                >
+                </div>
+                <div className={`requirement ${passwordValidations.upper ? 'met' : 'unmet'}`}>
                   At least 1 uppercase letter
-                </p>
-                <p
-                  style={{
-                    color: passwordValidations.lower ? "green" : "red",
-                  }}
-                >
+                </div>
+                <div className={`requirement ${passwordValidations.lower ? 'met' : 'unmet'}`}>
                   At least 1 lowercase letter
-                </p>
-                <p
-                  style={{
-                    color: passwordValidations.number ? "green" : "red",
-                  }}
-                >
+                </div>
+                <div className={`requirement ${passwordValidations.number ? 'met' : 'unmet'}`}>
                   At least 1 number
-                </p>
-                <p
-                  style={{
-                    color: passwordValidations.special ? "green" : "red",
-                  }}
-                >
+                </div>
+                <div className={`requirement ${passwordValidations.special ? 'met' : 'unmet'}`}>
                   At least 1 special character
-                </p>
+                </div>
               </div>
             )}
             <>
-            <button
-              type="submit"
-              disabled={
-                verifyAccount
-                  ? !verificationCode.trim()
-                  : !checkIfValidPassword(password)
-              }
-              className="pill-button text-nowrap"
-            >
-              {verifyAccount ? "Verify Code" : "Create Account"}
-            </button>
-            {verifyAccount && (
-              <button 
-                type="button" 
-                className="pill-button text-nowrap" 
-                onClick={handleResendVerification}
-                disabled={resendLoading}
-                style={{ marginLeft: '10px' }}
-              >
-                {resendLoading ? "Sending..." : "Resend Code"}
-              </button>
-            )}
+              {verifyAccount ? (
+                <div
+                  id="button-group"
+                  style={{ display: "flex", justifyContent: "center", gap: "0.5rem" }}
+                >
+                  <button
+                    type="submit"
+                    disabled={!verificationCode.trim()}
+                    className="pill-button"
+                    style={{ width: "50%" }}
+                  >
+                    Verify Code
+                  </button>
+                  <button
+                    type="button"
+                    className="pill-button"
+                    style={{ width: "50%" }}
+                    onClick={handleResendVerification}
+                    disabled={resendLoading}
+                  >
+                    {resendLoading ? "Sending..." : "Resend Code"}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={!checkIfValidPassword(password)}
+                  className="pill-button text-nowrap head-padding"
+                  style={{ width: "100%" }}
+                >
+                  Create Account
+                </button>
+              )}
             </>
-
             {error && <p style={{ color: "red" }}>{error}</p>}
             {resendSuccess && (
               <p style={{ color: "green" }}>Verification code resent successfully!</p>
             )}
-
-            <p className="head-padding">
+            <p>
               Already have an account? <a href="/login">Login</a>
             </p>
           </form>
