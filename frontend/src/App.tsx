@@ -7,7 +7,6 @@ import type { RootState } from "./state/store";
 import { useSelector } from "react-redux";
 import { useAuth } from "./context/AuthContext";
 import type { JSX } from "react";
-import PublicRoute from "./components/PublicRoute";
 // Global styles
 import './styles/theme.css'
 
@@ -27,8 +26,8 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
-  <Route path="/signup" element={<PublicRoute><SignupPage /></PublicRoute>} />
-  <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route
           path="/timer"
           element={
