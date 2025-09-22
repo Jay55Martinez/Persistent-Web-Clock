@@ -182,3 +182,49 @@ input:focus, textarea:focus {
   outline-offset: 2px;
 }
 
+/* Password requirements box used on reset/signup flows */
+.password-requirements {
+  background: color-mix(in srgb, var(--color-surface) 95%, var(--color-background));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 8%, var(--color-muted) 92%);
+  padding: 0.75rem 1.25rem; /* inset left/right a bit */
+  border-radius: var(--radius-md);
+  max-width: 280px; /* slightly narrower so borders sit in more */
+  margin: 0.4rem auto;
+  text-align: center;
+}
+
+.password-requirements h5 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.95rem;
+  color: black;
+}
+
+.requirement {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.1rem 0;
+  color: var(--color-muted);
+  font-size: 0.92rem;
+}
+
+.requirement::before {
+  content: '○';
+  display: inline-block;
+  width: 1.1rem;
+  text-align: center;
+  font-weight: 700;
+  color: var(--color-muted);
+}
+
+.requirement.met::before { content: '✓'; color: var(--color-success); }
+.requirement.met { color: var(--color-success); font-weight: 600; }
+
+.requirement.unmet { color: var(--color-muted); }
+
+.password-match {
+  margin-top: 0.5rem;
+  font-size: 0.92rem;
+}
+
+

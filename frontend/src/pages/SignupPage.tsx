@@ -160,7 +160,7 @@ const SignupPage = () => {
                       cursor: "pointer",
                     }}
                   >
-                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                    {showPassword ? <FaEyeSlash style={{ color: 'black' }} /> : <FaEye style={{ color: 'black' }} />}
                   </button>
                   <input type="checkbox" checked={rememberMe} onChange={() => setRememberMe(!rememberMe)} style={{ marginTop: '10px' }}/> Remember Me
                 </div>
