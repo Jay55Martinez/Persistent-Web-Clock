@@ -59,6 +59,9 @@ const mockRes = () => {
 describe('Auth Controllers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Ensure default: passwords are considered valid unless overridden in a specific test
+    const utils = require('../src/utils/auth.utils');
+    (utils.checkIfValidPassword as jest.Mock).mockReturnValue(true);
   });
 
   describe('signup', () => {
@@ -95,6 +98,73 @@ describe('Auth Controllers', () => {
       expect(User.create).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ user: expect.objectContaining({ email: 'test@example.com' }) }));
+    });
+
+    it('return 400 invalid password path', async () => {
+      const req = { body: { email: 'test@example.com', password: 'bad' }} as unknown as Request;
+      const res = mockRes();
+      (User.findOne as unknown as jest.Mock).mockResolvedValue(null);
+      const utils = require('../src/utils/auth.utils');
+      (utils.checkIfValidPassword as jest.Mock).mockReturnValueOnce(false);
+
+      await signup(req, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Password must be at least 12 characters long, contain uppercase, lowercase, number, and special character.' });
+    });
+
+    it('returns 500 email send failure', async () => {
+      // Silence expected controller log in this test only
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      // No existing user
+      (User.findOne as unknown as jest.Mock).mockResolvedValue(null);
+      // No existing verification code so it will create one
+      (Code.findOne as unknown as jest.Mock).mockResolvedValue(null);
+      (Code.create as unknown as jest.Mock).mockResolvedValue({});
+
+      // Make email sending fail for this test only
+      const transporter = require('../src/email/transporter').default;
+      (transporter.sendMail as jest.Mock).mockRejectedValueOnce(new Error('SMTP failed'));
+
+      const req = { body: { email: 'test@example.com', password: 'ValidPassword!234' } } as unknown as Request;
+      const res = mockRes();
+
+      await signup(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Failed to send verification email.' });
+
+      // Restore console.error
+      errorSpy.mockRestore();
+    });
+
+    it('sends verification email with expected fields', async () => {
+      // Arrange: no existing user and no existing code
+      (User.findOne as unknown as jest.Mock).mockResolvedValue(null);
+      (Code.findOne as unknown as jest.Mock).mockResolvedValue(null);
+      (Code.create as unknown as jest.Mock).mockResolvedValue({});
+      (User.create as unknown as jest.Mock).mockResolvedValue({
+        email: 'Test@Example.com', // mixed case to verify normalization
+        isVerified: false,
+        isLoggedIn: false,
+        verificationTokenExpires: new Date(),
+      });
+
+      const req = { body: { email: 'Test@Example.com', password: 'ValidPassword!234' } } as unknown as Request;
+      const res = mockRes();
+
+      const transporter = require('../src/email/transporter').default;
+
+      // Act
+      await signup(req, res);
+
+      // Assert
+      expect(transporter.sendMail).toHaveBeenCalledTimes(1);
+      expect(transporter.sendMail).toHaveBeenCalledWith(expect.objectContaining({
+        to: 'test@example.com',
+        subject: 'Verification Code',
+        text: 'Your verification code is: 123456',
+      }));
     });
   });
 
