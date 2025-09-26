@@ -9,6 +9,7 @@ export type VerificationCodeInputProps = {
   ariaLabelPrefix?: string; // e.g., "Digit"
   autoFocus?: boolean;
   gap?: string; // CSS gap between boxes
+  shake?: boolean; // apply shake animation to inputs
 };
 
 const VerificationCodeInput: React.FC<VerificationCodeInputProps> = ({
@@ -20,6 +21,7 @@ const VerificationCodeInput: React.FC<VerificationCodeInputProps> = ({
   ariaLabelPrefix = "Digit",
   autoFocus = false,
   gap = "0.5rem",
+  shake = false,
 }) => {
   const refs = useRef<Array<HTMLInputElement | null>>([]);
   const padded = useMemo(() => (value || "").slice(0, length), [value, length]);
@@ -63,7 +65,7 @@ const VerificationCodeInput: React.FC<VerificationCodeInputProps> = ({
 
   return (
     <div
-      className={className}
+    className={className}
       style={{ display: "flex", justifyContent: "center", gap, margin: "0.5rem 0" }}
     >
       {Array.from({ length }).map((_, idx) => (
@@ -74,7 +76,7 @@ const VerificationCodeInput: React.FC<VerificationCodeInputProps> = ({
           pattern="[0-9]*"
           maxLength={1}
           aria-label={`${ariaLabelPrefix} ${idx + 1}`}
-          className={inputClassName || "text-center form-control head-padding"}
+      className={`${inputClassName || "text-center form-control head-padding"} ${shake ? "shake" : ""}`}
           style={{ width: "2.5rem", height: "2.5rem", fontSize: "1.25rem" }}
           value={padded[idx] ?? ""}
           onPaste={handlePaste}
