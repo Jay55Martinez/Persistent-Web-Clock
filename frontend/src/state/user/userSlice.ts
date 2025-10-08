@@ -29,9 +29,9 @@ export const login = createAsyncThunk("auth/login", async ({ email, password, re
     }
 });
 
-export const logout = createAsyncThunk("auth/logout", async (_, thunkAPI) => {
+export const logout = createAsyncThunk("auth/logout", async (email: string, thunkAPI) => {
     try {
-        const response = await logoutUser();
+        const response = await logoutUser(email);
         if (response.status === 200) {
             return response.data.user;
         } else {
@@ -117,7 +117,14 @@ export const checkAuth = createAsyncThunk("auth/checkAuth", async (_, thunkAPI) 
 const userSlice = createSlice({
     name: 'user',
     initialState,
-    reducers: {},
+        reducers: {
+        forceLogout: (state) => {
+            state.email = null;
+            state.isVerified = false;
+            state.isLoggedIn = false;
+            state.verificationTokenExpires = null;
+        }
+    },
     extraReducers: builder => {
         builder
             .addCase(checkAuth.fulfilled, (state, action) => {
@@ -173,5 +180,5 @@ const userSlice = createSlice({
 });
 
 
-
+export const { forceLogout } = userSlice.actions;
 export default userSlice.reducer;

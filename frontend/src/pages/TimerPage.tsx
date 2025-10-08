@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "../state/store";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import {
   startTimer,
@@ -12,9 +15,13 @@ import type { RootState } from "../state/store";
 // styling
 import "./pages.css";
 import ParticlesBackground from "../components/ParticlesBackground";
+import { api } from "../api/axios";
+import { logout } from "../state/user/userSlice";
 
 const TimerPage = () => {
+  const dispatch = useDispatch<AppDispatch>();
   const user = useSelector((state: RootState) => state.user);
+  const navigate = useNavigate();
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [totalElapsed, setTotalElapsed] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
@@ -61,6 +68,27 @@ const TimerPage = () => {
 
     fetchStatus();
   }, []);
+
+  // TimerPage-scoped 403 handler: logout + navigate home
+  useEffect(() => {
+    const interceptorId = api.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        if (error?.response?.status === 403) {
+          // Clear auth state via checkAuth rejection, then navigate home
+          if (user.email) {
+            dispatch(logout(user.email));
+          }
+          disconnectSocket();
+          navigate("/");
+        }
+        return Promise.reject(error);
+      }
+    );
+    return () => {
+      api.interceptors.response.eject(interceptorId);
+    };
+  }, [dispatch, navigate]);
 
   // Connect to socket
   useEffect(() => {

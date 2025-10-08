@@ -3,6 +3,7 @@ import request from "supertest";
 import jwt from "jsonwebtoken";
 import app from "../src/app";
 import Timer from "../src/models/timer.model";
+import User from "../src/models/user.model";
 
 describe("Timer Integration Tests", () => {
   it("creates a new timer on POST /api/timer/start", async () => {
@@ -16,6 +17,16 @@ describe("Timer Integration Tests", () => {
         expiresIn: "1h",
       }
     );
+
+    // Ensure a corresponding user exists with a RefreshToken (middleware requires it)
+    await User.create({
+      _id: mockUserId,
+      email: `user_${mockUserId}@example.com`,
+      password: "test-password",
+      isVerified: true,
+      isLoggedIn: true,
+      RefreshToken: "dummy-refresh-token",
+    });
 
     const res = await request(app)
       .post("/api/timer/start")
@@ -42,6 +53,16 @@ describe("Timer Pause Tests", () => {
         expiresIn: "1h",
       }
     );
+
+    // Ensure user exists for middleware
+    await User.create({
+      _id: mockUserId,
+      email: `user_${mockUserId}@example.com`,
+      password: "test-password",
+      isVerified: true,
+      isLoggedIn: true,
+      RefreshToken: "dummy-refresh-token",
+    });
 
     await request(app)
       .post("/api/timer/start")
@@ -79,6 +100,16 @@ describe("Timer Reset Tests", () => {
         expiresIn: "1h",
       }
     );
+
+    // Ensure user exists for middleware
+    await User.create({
+      _id: mockUserId,
+      email: `user_${mockUserId}@example.com`,
+      password: "test-password",
+      isVerified: true,
+      isLoggedIn: true,
+      RefreshToken: "dummy-refresh-token",
+    });
 
     // First, start the timer
     const res1 = await request(app)
@@ -118,6 +149,16 @@ describe("Timer Status Tests", () => {
       }
     );
 
+    // Ensure user exists for middleware
+    await User.create({
+      _id: mockUserId,
+      email: `user_${mockUserId}@example.com`,
+      password: "test-password",
+      isVerified: true,
+      isLoggedIn: true,
+      RefreshToken: "dummy-refresh-token",
+    });
+
     // Start the timer
     await request(app)
       .post("/api/timer/start")
@@ -147,6 +188,16 @@ describe("Timer Status Tests", () => {
         expiresIn: "1h",
       }
     );
+
+    // Ensure user exists for middleware
+    await User.create({
+      _id: mockUserId,
+      email: `user_${mockUserId}@example.com`,
+      password: "test-password",
+      isVerified: true,
+      isLoggedIn: true,
+      RefreshToken: "dummy-refresh-token",
+    });
 
     await request(app)
       .post("/api/timer/reset")
@@ -189,6 +240,16 @@ describe("Timer Status Tests", () => {
         expiresIn: "1h",
       }
     );
+
+    // Ensure user exists for middleware
+    await User.create({
+      _id: mockUserId,
+      email: `user_${mockUserId}@example.com`,
+      password: "test-password",
+      isVerified: true,
+      isLoggedIn: true,
+      RefreshToken: "dummy-refresh-token",
+    });
 
     const res = await request(app)
       .post("/api/timer/reset")

@@ -34,7 +34,17 @@ export const authenticateUser = (req: Request, res: Response, next: NextFunction
   try {
     const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET!) as JwtPayload;
     req.user = { id: decoded.userId };
-    next();
+
+    // Check the users RefreshToken field to ensure the token is still valid
+    User.findById(decoded.userId).then(user => {
+      if (!user) {
+        return res.status(401).json({ message: 'User not found' });
+      }
+      if (!user.RefreshToken) {
+        return res.status(401).json({ message: 'Token has been revoked' });
+      }
+      next();
+    });
   } catch {
     return res.status(401).json({ message: 'Invalid token' });
   }
@@ -43,27 +53,40 @@ export const authenticateUser = (req: Request, res: Response, next: NextFunction
 // Issues a fresh access token (and rotates refresh token) using the HttpOnly 'refreshToken' cookie
 export const refreshToken = async (req: Request, res: Response) => {
   const rt = req.cookies?.refreshToken;
-  if (!rt) return res.status(401).json({ message: 'No refresh token provided' });
+  if (!rt) return res.status(403).json({ message: 'No refresh token provided' });
 
   try {
     const decoded = jwt.verify(rt, process.env.JWT_REFRESH_SECRET!) as JwtPayload;
     const user = await User.findOne({ _id: decoded.userId, RefreshToken: rt });
     if (!user) return res.status(401).json({ message: 'Invalid refresh token' });
+    if (!decoded.exp || !decoded.iat) {
+      return res.status(401).json({ message: 'Invalid refresh token' });
+    }
 
     // Issue new access token
     const newAccessToken = jwt.sign({ userId: user._id }, process.env.JWT_ACCESS_SECRET!, { expiresIn: '15m' });
 
-    // todo: have a remember me option later - 7 days
-    // Rotate refresh token
-    const newRefreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET!, { expiresIn: '1h' });
+    // Determine original RT lifespan from token claims: if it was 7 days, keep 7 days; otherwise short (1h)
+    const lifespanSec = decoded.exp - decoded.iat; // seconds
+    const sevenDaysSec = 7 * 24 * 60 * 60; // seconds
+    const rememberMe = lifespanSec >= sevenDaysSec;
+
+    // Rotate refresh token with same policy
+    const newRefreshToken = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_REFRESH_SECRET!,
+      { expiresIn: rememberMe ? '7d' : '1h' }
+    );
     user.RefreshToken = newRefreshToken;
     await user.save();
 
+    const rtMaxAgeMs = rememberMe ? 7 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000; // align cookie to token expiry
+
     res
       .cookie('accessToken', newAccessToken, { ...cookieOpts, maxAge: 15 * 60 * 1000 })
-      .cookie('refreshToken', newRefreshToken, { ...cookieOpts, maxAge: 60 * 60 * 1000 })
+      .cookie('refreshToken', newRefreshToken, { ...cookieOpts, maxAge: rtMaxAgeMs })
       .json({ ok: true });
   } catch {
-    return res.status(401).json({ message: 'Invalid refresh token' });
+    return res.status(403).json({ message: 'Invalid refresh token' });
   }
 };

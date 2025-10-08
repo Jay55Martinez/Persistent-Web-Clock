@@ -213,7 +213,7 @@ export const verifyAccount = async (req: Request, res: Response) => {
       expiresIn: "15m",
     });
     const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET, {
-      expiresIn: rememberMe ? "7d" : "1h",
+      expiresIn: rememberMe ? "7d" : "4h",
     });
 
     user.isVerified = true;
@@ -236,7 +236,7 @@ export const verifyAccount = async (req: Request, res: Response) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-        maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : 1 * 60 * 60 * 1000,
+        maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : 4 * 60 * 60 * 1000,
       })
       .json({
         user: {
@@ -331,7 +331,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET, {
-      expiresIn: rememberMe ? "7d" : "1h",
+      expiresIn: rememberMe ? "7d" : "4h",
     });
 
     const accessToken = jwt.sign({ userId: user._id }, process.env.JWT_ACCESS_SECRET!, {
@@ -359,7 +359,7 @@ export const login = async (req: Request, res: Response) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-        maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : 1 * 60 * 60 * 1000,
+        maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : 4 * 60 * 60 * 1000,
       })
       .json({
         user: {
@@ -381,15 +381,12 @@ export const login = async (req: Request, res: Response) => {
  * @returns A JSON response with user details or an error message.
  */
 export const logout = async (req: Request, res: Response) => {
-  if (!req.cookies || !req.cookies.refreshToken) {
-    return res.status(400).json({ error: "User not logged in." });
-  }
-  const refreshToken = req.cookies.refreshToken;
-  let user = await User.findOne({ RefreshToken: refreshToken });
+  //const refreshToken = req.cookies.refreshToken;
+  let user = await User.findOne({ email: req.body.email });
   if (!user) {
     return res.status(400).json({ error: "User not logged in." });
   }
-    user.RefreshToken = undefined;
+  user.RefreshToken = undefined;
   user.RefreshToken = null;
   user.isLoggedIn = false; // Update user's isLoggedIn status
   await user.save();
@@ -531,7 +528,7 @@ export const resetPassword = async (req: Request, res: Response) => {
     }
 
     const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET!, {
-      expiresIn: rememberMe ? "7d" : "1h",
+      expiresIn: rememberMe ? "7d" : "4h",
     });
 
     const accessToken = jwt.sign({ userId: user._id }, process.env.JWT_ACCESS_SECRET!, {
@@ -565,7 +562,7 @@ export const resetPassword = async (req: Request, res: Response) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-        maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : 1 * 60 * 60 * 1000,
+        maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : 4 * 60 * 60 * 1000,
       })
       .json({
         user: {

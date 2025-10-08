@@ -15,10 +15,10 @@ const Navbar = () => {
   const isOnTimerPage = location.pathname === "/timer";
 
   const handleLogout = async () => {
-    await dispatch(logout()); // Clear client-side state
-    // wait some time
+    if (user.email) {
+      await dispatch(logout(user.email)); // Clear client-side state
+    }
     disconnectSocket();
-    // await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1000ms
     navigate('/');
   };
 

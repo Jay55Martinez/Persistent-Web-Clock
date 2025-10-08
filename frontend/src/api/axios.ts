@@ -5,6 +5,28 @@ export const api = axios.create({
   withCredentials: true,
 });
 
+// Optional global 403 handler (set from app init)
+let onForbidden: (() => void) | null = null;
+export function registerForbiddenHandler(handler: () => void) {
+  onForbidden = handler;
+}
+
+// Intercept 403s globally to trigger logout + redirect
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const status = error?.response?.status;
+    if (status === 403) {
+      try {
+        onForbidden?.();
+      } catch {
+        // no-op
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 /**
  * Safely calls an API function and handles errors. Calls a refresh endpoint on 401 errors.
  * Retrieving a new access token and retrying the original request once.

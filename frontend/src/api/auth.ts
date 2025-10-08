@@ -10,8 +10,8 @@ export const signupUser = async (email: string, password: string) => {
   return response;
 };
 
-export const logoutUser = async () => {
-  const response = await api.post('/auth/logout');
+export const logoutUser = async (email: string) => {
+  const response = await api.post('/auth/logout', { email });
   return response;
 };
 
