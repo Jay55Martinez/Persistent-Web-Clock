@@ -6,6 +6,7 @@ import { checkIfValidPassword } from "../utils/auth.utils"; // Assuming this is 
 import Code from "../models/verificationCode.model";
 import { generateVerificationCode } from "../utils/auth.utils";
 import transporter from "../email/transporter";
+import { OAuth2Client } from "google-auth-library";
 import { ref } from "process";
 
 /**
@@ -340,8 +341,6 @@ export const login = async (req: Request, res: Response) => {
 
     user.RefreshToken = refreshToken;
 
-    await user.save();
-
     // Update user's isLoggedIn status
     user.isLoggedIn = true;
     user.loginAttempts = 0; // Reset loginAttempts on successful login
@@ -597,4 +596,99 @@ export const verifyAuth = async (req: Request, res: Response) => {
       isLoggedIn: account.isLoggedIn,
     },
   });
+};
+
+/**
+ * Google OAuth login handler. Verifies the Google token, and logs in or registers the user.
+ * @param req - Contains token and rememberMe in the body.
+ * @param res - Sends back a JSON response if the login was successful or an error message.
+ */
+export const googleOAuthLogin = async (req: Request, res: Response) => {
+  if (!process.env.GOOGLE_CLIENT_ID) {
+    console.log('Google Client ID is not configured.');
+    return res.status(500).json({ error: 'Google Client ID is not configured.' });
+  }
+
+  const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+  const { token, rememberMe } = req.body;
+  const remember = !!rememberMe;
+
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    if (!payload || !payload.email || !payload.sub) {
+      return res.status(401).json({ error: 'Invalid Google token.' });
+    }
+
+    const { email, sub: googleId } = payload;
+    const emailLower = email.toLowerCase();
+
+    let user = await User.findOne({ email: emailLower });
+
+    if (!user) {
+      // Hash provider id as a placeholder password (never used directly)
+      const hashedGoogleId = await bcrypt.hash(googleId, 10);
+      user = new User({
+        email: emailLower,
+        password: hashedGoogleId,
+        isVerified: true,
+        isLoggedIn: true,
+      });
+      await user.save();
+    } else if (!user.isVerified) {
+      // Ensure existing accounts become verified when logging in via OAuth
+      user.isVerified = true;
+    }
+
+    if (!process.env.JWT_REFRESH_SECRET) {
+      return res.status(500).json({ error: 'JWT refresh secret is not set in environment variables.' });
+    }
+    if (!process.env.JWT_ACCESS_SECRET) {
+      return res.status(500).json({ error: 'JWT access secret is not configured.' });
+    }
+
+    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET, {
+      expiresIn: remember ? '7d' : '1h',
+    });
+    const accessToken = jwt.sign({ userId: user._id }, process.env.JWT_ACCESS_SECRET, {
+      expiresIn: '15m',
+    });
+
+    user.RefreshToken = refreshToken;
+    user.isLoggedIn = true; // ensure logged in
+    user.loginAttempts = 0; // reset attempts
+    await user.save();
+
+    res
+      .status(200)
+      .cookie('accessToken', accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 15 * 60 * 1000,
+      })
+      .cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: remember ? 7 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000,
+      })
+      .json({
+        user: {
+          email: user.email,
+          isVerified: user.isVerified,
+          isLoggedIn: user.isLoggedIn,
+        },
+      });
+  } catch (error) {
+    console.error('Error during Google OAuth login:', error);
+    if (error instanceof Error && error.message.includes('Invalid Google token')) {
+      return res.status(401).json({ error: 'Invalid Google token.' });
+    }
+    return res.status(500).json({ error: 'Internal server error.' });
+  }
 };
