@@ -9,6 +9,7 @@ import type { AppDispatch } from "../state/store";
 import ParticlesBackground from "../components/ParticlesBackground";
 import PasswordToggle from "../components/PasswordToggle";
 import VerificationCodeInput from "../components/VerificationCodeInput";
+import OAuthLogin from "../components/OAuthGoogle";
 // Icons
 // Style
 import "./pages.css";
@@ -32,17 +33,36 @@ const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState<boolean>(false);
   const [showPasswordResetBottom, setShowPasswordResetBottom] = useState(false);
   const [verificationCode, setVerificationCode] = useState<string>("");
+  const [codeShake, setCodeShake] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [formError, setFormError] = useState("");
+  const [pwShake, setPwShake] = useState(false);
+  const [newPwShake, setNewPwShake] = useState(false);
+  const [confirmPwShake, setConfirmPwShake] = useState(false);
+  const [emailShake, setEmailShake] = useState(false);
   const [pageState, setPageState] = useState<
     (typeof PageState)[keyof typeof PageState]
   >(PageState.Login);
   const navigate = useNavigate();
 
+  const triggerShake = (setter: React.Dispatch<React.SetStateAction<boolean>>) => {
+    setter(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const normalizedEmail = email.trim().toLowerCase();
+    // custom email validation to avoid native popup
+    const emailValid = normalizedEmail.includes("@");
+    if (!emailValid) {
+      // keep highlighted until next submit attempt
+      setEmailShake(true);
+      return;
+    } else if (emailShake) {
+      // clear highlight only on submit when email becomes valid
+      setEmailShake(false);
+    }
     const resultAction = await dispatch(
       login({ email: normalizedEmail, password, rememberMe })
     );
@@ -52,23 +72,35 @@ const LoginPage = () => {
       connectSocket(user?.email ?? null);
       navigate("/timer");
     } else {
-      alert("Invalid Password!");
+      // Trigger shake animation on password input
+      triggerShake(setPwShake);
     }
   };
 
   const handlePasswordResetRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     const normalizedEmail = email.trim().toLowerCase();
+    // validate email before calling API
+    const emailValid = normalizedEmail.includes("@");
+    if (!emailValid) {
+      // keep highlighted until next submit attempt
+      setEmailShake(true);
+      return;
+    } else if (emailShake) {
+      // clear highlight only on submit when email becomes valid
+      setEmailShake(false);
+    }
     try {
       const response = await requestPasswordReset(normalizedEmail);
       if (response.status >= 200 && response.status < 300) {
-        alert("Reset link sent! Please check your email.");
+        // alert("Reset link sent! Please check your email.");
         setPageState(PageState.ForgotPasswordCode);
       } else {
-        alert("Failed to send reset link. Please try again.");
+        // Trigger shake on email input
+        triggerShake(setEmailShake);
       }
     } catch (err) {
-      alert("Error sending reset link. Please try again.");
+      triggerShake(setEmailShake);
     }
   };
 
@@ -77,21 +109,21 @@ const LoginPage = () => {
     const normalizedEmail = email.trim().toLowerCase();
     try {
       if (verificationCode && verificationCode.length === 6) {
+        if (codeShake) setCodeShake(false); // clear previous shake on valid attempt
         const response = await verifyResetCode(
           normalizedEmail,
           Number(verificationCode)
         );
         if (response.status >= 200 && response.status < 300) {
-          alert("Verification code is valid!");
           setPageState(PageState.ResetPassword);
         } else {
-          alert("Invalid verification code. Please try again.");
+          setCodeShake(true);
         }
       } else {
-        alert("Please enter the 6-digit verification code.");
+        setCodeShake(true);
       }
     } catch (err) {
-      alert("Error verifying code. Please try again.");
+      setCodeShake(true);
     }
   };
 
@@ -106,16 +138,20 @@ const LoginPage = () => {
     }
     // Validate password rules
     if (!checkIfValidPassword(newPassword)) {
-      setFormError("Password does not meet requirements.");
+  setFormError("Password does not meet requirements.");
+  setNewPwShake(true);
       return;
     }
     // Validate match
     if (newPassword !== confirmPassword) {
-      setFormError("Passwords do not match.");
+  setFormError("Passwords do not match.");
+  setConfirmPwShake(true);
       return;
     }
 
     try {
+  if (newPwShake) setNewPwShake(false);
+  if (confirmPwShake) setConfirmPwShake(false);
       const resultAction = await dispatch(
         resetPassword({
           email: normalizedEmail,
@@ -188,19 +224,36 @@ const LoginPage = () => {
         )}
         <div id="text-align" className="text-center">
           {pageState === PageState.Login && (
-            <form onSubmit={handleSubmit}>
+            <form noValidate onSubmit={handleSubmit}>
               <h1>tankTimer</h1>
-              <h4>Log in to tankTimer</h4>
-              <input
-                id="information-input-email"
-                className="input-group mb-2 head-padding form-control"
-                type="email"
-                placeholder="Email address*"
-                value={email}
-                required
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <br />
+                <h4>Log in to tankTimer</h4>
+                <div style={{ position: 'relative' }}>
+                {emailShake && (
+                  <div 
+                  style={{
+                  position: 'absolute',
+                  left: '0',
+                  top: '100%',
+                  color: 'red',
+                  whiteSpace: 'nowrap',
+                  fontSize: '0.8rem'
+                  }}
+                  >
+                  *Please enter a valid email address.
+                  </div>
+                )}
+                <input
+                  id="information-input-email"
+                  className={`input-group mb-2 head-padding form-control ${emailShake ? 'shake' : ''}`}
+                  type="email"
+                  placeholder="Email address*"
+                  value={email}
+                  required
+                  onChange={(e) => setEmail(e.target.value)}
+                  aria-invalid={emailShake || undefined}
+                />
+                </div>
+                <br />
               <div
                 id="password-input-container"
                 style={{ position: "relative" }}
@@ -208,7 +261,7 @@ const LoginPage = () => {
                 <div style={{ position: "relative" }}>
                   <input
                     id="information-input-password"
-                    className="input-group mb-2 form-control"
+                    className={`input-group mb-2 form-control ${pwShake ? 'shake' : ''}`}
                     type={showPassword ? "text" : "password"}
                     placeholder="Password*"
                     value={password}
@@ -254,13 +307,16 @@ const LoginPage = () => {
                     </label>
                   </div>
                 </div>
-                <button
-                  type="submit"
-                  className="pill-button head-padding"
-                  style={{ width: "100%" }}
-                >
-                  Login
-                </button>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                  <button
+                    type="submit"
+                    className="pill-button head-padding"
+                    style={{ width: "100%" }}
+                  >
+                    Login
+                  </button>
+                  <OAuthLogin />
+                </div>
                 <p>
                   Don't have an account? <a href="/signup">Sign up</a>
                 </p>
@@ -268,18 +324,35 @@ const LoginPage = () => {
             </form>
           )}
           {pageState === PageState.ForgotPasswordEmail && (
-            <form onSubmit={handlePasswordResetRequest}>
+            <form noValidate onSubmit={handlePasswordResetRequest}>
               <h1>Reset Password</h1>
               <h4>Enter your email to reset your password</h4>
+              <div style={{ position: 'relative' }}>
+              {emailShake && (
+                  <div 
+                  style={{
+                  position: 'absolute',
+                  left: '0',
+                  top: '100%',
+                  color: 'red',
+                  whiteSpace: 'nowrap',
+                  fontSize: '0.8rem'
+                  }}
+                  >
+                  *Please enter a valid email address.
+                  </div>
+                )}
               <input
                 id="information-input-email"
-                className="input-group mb-2 head-padding form-control"
+                className={`input-group mb-2 head-padding form-control ${emailShake ? 'shake' : ''}`}
                 type="email"
                 placeholder="Email address*"
                 value={email}
                 required
                 onChange={(e) => setEmail(e.target.value)}
+                aria-invalid={emailShake || undefined}
               />
+              </div>
               <button
                 type="submit"
                 className="pill-button head-padding"
@@ -297,6 +370,7 @@ const LoginPage = () => {
                 value={verificationCode}
                 onChange={setVerificationCode}
                 length={6}
+                shake={codeShake}
               />
               <div
                 id="button-group"
@@ -328,12 +402,13 @@ const LoginPage = () => {
               <div style={{ position: "relative" }}>
                 <input
                   id="information-input-new-password"
-                  className="input-group mb-2 head-padding form-control"
+                  className={`input-group mb-2 head-padding form-control ${newPwShake ? 'shake' : ''}`}
                   type={showPasswordResetTop ? "text" : "password"}
                   placeholder="New Password*"
                   value={newPassword}
                   required
                   onChange={(e) => setNewPassword(e.target.value)}
+                  aria-invalid={newPwShake || undefined}
                 />
                 <PasswordToggle
                   show={showPasswordResetTop}
@@ -343,12 +418,13 @@ const LoginPage = () => {
               <div style={{ position: "relative" }}>
                 <input
                   id="information-input-confirm-password"
-                  className="input-group mb-2 head-padding form-control"
+                  className={`input-group mb-2 head-padding form-control ${confirmPwShake ? 'shake' : ''}`}
                   type={showPasswordResetBottom ? "text" : "password"}
                   placeholder="Confirm New Password*"
                   value={confirmPassword}
                   required
                   onChange={(e) => setConfirmPassword(e.target.value)}
+                  aria-invalid={confirmPwShake || undefined}
                 />
                 <PasswordToggle
                   show={showPasswordResetBottom}
@@ -381,10 +457,6 @@ const LoginPage = () => {
                 type="submit"
                 className="pill-button"
                 style={{ width: "100%" }}
-                disabled={
-                  !checkIfValidPassword(newPassword) ||
-                  newPassword !== confirmPassword
-                }
               >
                 Reset Password
               </button>

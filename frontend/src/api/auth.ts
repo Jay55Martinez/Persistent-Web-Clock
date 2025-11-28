@@ -44,3 +44,8 @@ export const verifyResetCode = async (email: string, code: number) => {
   const response = await api.post('auth/verify-reset-code', { email, code });
   return response;
 };
+
+export const googleOAuthLogin = async (token: string, rememberMe: boolean) => {
+  const response = await api.post('/auth/google-oauth-login', { token, rememberMe });
+  return response;
+}

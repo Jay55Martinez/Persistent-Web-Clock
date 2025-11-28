@@ -4,6 +4,7 @@ import { checkIfValidPassword, isValidEmail } from "../utils/signup.util";
 import { useDispatch } from "react-redux";
 import { signup, verify, resendVerification } from "../state/user/userSlice";
 import type { AppDispatch } from "../state/store";
+import OAuthLogin from "../components/OAuthGoogle";
 // Icons
 import PasswordToggle from "../components/PasswordToggle";
 import VerificationCodeInput from "../components/VerificationCodeInput";
@@ -229,14 +230,17 @@ const SignupPage = () => {
                   </button>
                 </div>
               ) : (
-                <button
-                  type="submit"
-                  disabled={!checkIfValidPassword(password)}
-                  className="pill-button text-nowrap head-padding"
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                  <button
+                    type="submit"
+                    disabled={!checkIfValidPassword(password)}
+                    className="pill-button text-nowrap head-padding"
                   style={{ width: "100%" }}
                 >
                   Create Account
                 </button>
+                <OAuthLogin />
+                </div>
               )}
             </>
             {error && <p style={{ color: "red" }}>{error}</p>}

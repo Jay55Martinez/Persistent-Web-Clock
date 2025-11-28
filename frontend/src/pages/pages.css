@@ -61,6 +61,8 @@
   font-size: clamp(6rem, 12vw, 8rem);
 }
 
+/* Timer buttons */
+
 .timer-button {
   background: transparent;
   border: 1px solid #e5e7eb; /* light gray */
@@ -103,4 +105,26 @@
 .timer-button.reset:hover {
   background: #ef4444;
   color: white;
+}
+
+/* password input */
+
+@keyframes shake {
+  0% {
+    margin-left: 0rem;
+  }
+  25% {
+    margin-left: 0.5rem;
+  }
+  75% {
+    margin-left: -0.5rem;
+  }
+  100% {
+    margin-left: 0rem;
+  }
+}
+
+.shake {
+  animation: shake 0.2s ease-in-out 0s 2;
+  border: 2px solid #ef4444 !important;
 }
