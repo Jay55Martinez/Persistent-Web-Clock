@@ -3,6 +3,7 @@ import {disconnectSocket } from "../utils/socket";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../state/user/userSlice";
 import type { AppDispatch, RootState } from "../state/store";
+import { DarkLightModeToggle } from './DarkLightModeToggle';
 // Styling 
 import './navbar.css';
 
@@ -35,6 +36,7 @@ const Navbar = () => {
       <div id="navbar-elements" className="container-fluid">
         <a className="logo-text" style={{ paddingLeft: 15, paddingTop: 10 }} href="/" >tankTimer</a>
         <div id="button-container" className="d-flex gap-3" style={{ paddingRight: 15}}>
+          <DarkLightModeToggle />
           <button onClick={navigateTimerOrHome} className='pill-button'>{isOnTimerPage ? "Home" : "Timer"}</button>
           {user.isLoggedIn ? (
             <button onClick={handleLogout} className='pill-button'>Logout</button>
