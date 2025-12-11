@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import { checkIfValidPassword } from "../utils/auth.utils"; // Assuming this is the correct path
 import Code from "../models/verificationCode.model";
 import { generateVerificationCode } from "../utils/auth.utils";
-import transporter from "../email/transporter";
+import resend from "../email/transporter";
 import { ref } from "process";
 
 /**
@@ -64,8 +64,8 @@ export const signup = async (req: Request, res: Response) => {
       }
 
       // Then send the email
-      await transporter.sendMail({
-        from: process.env.GMAIL_USER,
+      await resend.emails.send({
+        from: process.env.EMAIL_FROM || "no-reply@tanktimer.com",
         to: emailNormalized,
         subject: "Verification Code",
         text: `Your verification code is: ${codeNew}`,
@@ -143,8 +143,8 @@ export const verifyResend = async (req: Request, res: Response) => {
       });
     }
     // Then send the email
-    await transporter.sendMail({
-      from: process.env.GMAIL_USER,
+    await resend.emails.send({
+      from: process.env.EMAIL_FROM || "no-reply@tanktimer.com",
       to: emailNormalized,
       subject: "Verification Code",
       text: `Your verification code is: ${codeNew}`,
@@ -449,8 +449,8 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
     }
 
     // Send email
-    await transporter.sendMail({
-      from: process.env.GMAIL_USER,
+    await resend.emails.send({
+      from: process.env.EMAIL_FROM || "no-reply@tanktimer.com",
       to: emailNormalized,
       subject: "Verification Code",
       text: `Your verification code is: ${codeNew}`,
