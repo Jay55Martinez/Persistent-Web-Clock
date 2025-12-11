@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { connectSocket, disconnectSocket } from "../utils/socket";
 import { useDispatch } from "react-redux";
 import { requestPasswordReset, verifyResetCode } from "../api/auth";
@@ -318,7 +319,7 @@ const LoginPage = () => {
                   <OAuthLogin />
                 </div>
                 <p>
-                  Don't have an account? <a href="/signup">Sign up</a>
+                  Don't have an account? <Link to="/signup">Sign up</Link>
                 </p>
               </div>
             </form>
