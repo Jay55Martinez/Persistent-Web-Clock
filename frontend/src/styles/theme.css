@@ -29,7 +29,7 @@
   --radius-lg: 20px;
 
   /* Transitions */
-  --transition-fast: 0.2s ease-in-out;
+  /* --transition-fast: 0.2s ease-in-out; */
 }
 
 /* Dark mode overrides */
@@ -196,7 +196,7 @@ input:focus, textarea:focus {
 .password-requirements h5 {
   margin: 0 0 0.5rem 0;
   font-size: 0.95rem;
-  color: black;
+  color: var(--color-text);
 }
 
 .requirement {

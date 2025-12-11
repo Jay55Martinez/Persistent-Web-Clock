@@ -9,6 +9,14 @@ import { AuthProvider } from './context/AuthContext';
 import { Provider } from "react-redux";
 import { store } from "./state/store";
 
+// Initialize theme from localStorage before React renders
+const savedTheme = localStorage.getItem("selectedTheme");
+if (savedTheme === "dark") {
+  document.querySelector("body")?.setAttribute("data-theme", "dark");
+} else {
+  document.querySelector("body")?.setAttribute("data-theme", "light");
+}
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <Provider store={store}>

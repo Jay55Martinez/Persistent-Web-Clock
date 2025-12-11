@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { loginUser, logoutUser, signupUser, verifyAuth, verifyAccount, resendVerification as resendVerificationApi, resetPassword as resetPasswordApi } from "../../api/auth";
+import { loginUser, logoutUser, signupUser, verifyAuth, verifyAccount, resendVerification as resendVerificationApi, resetPassword as resetPasswordApi, googleOAuthLogin as googleOAuthLoginApi } from "../../api/auth";
 
 interface UserState {
     email: string | null;
@@ -114,6 +114,20 @@ export const checkAuth = createAsyncThunk("auth/checkAuth", async (_, thunkAPI) 
     }
 });
 
+// OAuth
+export const googleOAuthLogin = createAsyncThunk("auth/googleOAuthLogin", async ({ token, rememberMe }: { token: string; rememberMe: boolean }, thunkAPI) => {
+    try {
+        const response = await googleOAuthLoginApi(token, rememberMe);
+        if (response.status === 200) {
+            return response.data.user;
+        } else {
+            return thunkAPI.rejectWithValue("Google OAuth login failed");
+        }
+    } catch (error) {
+        return thunkAPI.rejectWithValue("Google OAuth login failed");
+    }
+});
+
 const userSlice = createSlice({
     name: 'user',
     initialState,
@@ -168,6 +182,13 @@ const userSlice = createSlice({
                 state.isVerified = u.isVerified;
                 state.isLoggedIn = u.isLoggedIn;
                 state.verificationTokenExpires = null; // Clear verification token on successful password reset
+            })
+            // Store OAuth user on success
+            .addCase(googleOAuthLogin.fulfilled, (state, action) => {
+                const u = action.payload;
+                state.email = u.email;
+                state.isVerified = u.isVerified;
+                state.isLoggedIn = true;
             });
     }
 });

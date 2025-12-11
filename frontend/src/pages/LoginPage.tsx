@@ -9,6 +9,7 @@ import type { AppDispatch } from "../state/store";
 import ParticlesBackground from "../components/ParticlesBackground";
 import PasswordToggle from "../components/PasswordToggle";
 import VerificationCodeInput from "../components/VerificationCodeInput";
+import OAuthLogin from "../components/OAuthGoogle";
 // Icons
 // Style
 import "./pages.css";
@@ -306,13 +307,16 @@ const LoginPage = () => {
                     </label>
                   </div>
                 </div>
-                <button
-                  type="submit"
-                  className="pill-button head-padding"
-                  style={{ width: "100%" }}
-                >
-                  Login
-                </button>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                  <button
+                    type="submit"
+                    className="pill-button head-padding"
+                    style={{ width: "100%" }}
+                  >
+                    Login
+                  </button>
+                  <OAuthLogin />
+                </div>
                 <p>
                   Don't have an account? <a href="/signup">Sign up</a>
                 </p>
