@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { checkIfValidPassword, isValidEmail } from "../utils/signup.util";
 import { useDispatch } from "react-redux";
 import { signup, verify, resendVerification } from "../state/user/userSlice";
@@ -249,7 +249,7 @@ const SignupPage = () => {
               <p style={{ color: "green" }}>Verification code resent successfully!</p>
             )}
             <p>
-              Already have an account? <a href="/login">Login</a>
+              Already have an account? <Link to="/login">Login</Link>
             </p>
           </form>
         </div>
