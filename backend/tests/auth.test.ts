@@ -22,7 +22,11 @@ jest.mock('../src/models/verificationCode.model', () => ({
 }));
 jest.mock('../src/email/transporter', () => ({
   __esModule: true,
-  default: { sendMail: jest.fn().mockResolvedValue({}) }
+  default: { 
+    emails: { 
+      send: jest.fn().mockResolvedValue({ id: 'mock-email-id' }) 
+    } 
+  }
 }));
 jest.mock('bcryptjs', () => ({
   __esModule: true,
@@ -123,8 +127,8 @@ describe('Auth Controllers', () => {
       (Code.create as unknown as jest.Mock).mockResolvedValue({});
 
       // Make email sending fail for this test only
-      const transporter = require('../src/email/transporter').default;
-      (transporter.sendMail as jest.Mock).mockRejectedValueOnce(new Error('SMTP failed'));
+      const resend = require('../src/email/transporter').default;
+      (resend.emails.send as jest.Mock).mockRejectedValueOnce(new Error('SMTP failed'));
 
       const req = { body: { email: 'test@example.com', password: 'ValidPassword!234' } } as unknown as Request;
       const res = mockRes();
@@ -153,14 +157,15 @@ describe('Auth Controllers', () => {
       const req = { body: { email: 'Test@Example.com', password: 'ValidPassword!234' } } as unknown as Request;
       const res = mockRes();
 
-      const transporter = require('../src/email/transporter').default;
+      const resend = require('../src/email/transporter').default;
 
       // Act
       await signup(req, res);
 
       // Assert
-      expect(transporter.sendMail).toHaveBeenCalledTimes(1);
-      expect(transporter.sendMail).toHaveBeenCalledWith(expect.objectContaining({
+      expect(resend.emails.send).toHaveBeenCalledTimes(1);
+      expect(resend.emails.send).toHaveBeenCalledWith(expect.objectContaining({
+        from: expect.any(String),
         to: 'test@example.com',
         subject: 'Verification Code',
         text: 'Your verification code is: 123456',
