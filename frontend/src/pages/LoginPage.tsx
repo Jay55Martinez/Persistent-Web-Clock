@@ -11,6 +11,7 @@ import ParticlesBackground from "../components/ParticlesBackground";
 import PasswordToggle from "../components/PasswordToggle";
 import VerificationCodeInput from "../components/VerificationCodeInput";
 import OAuthLogin from "../components/OAuthGoogle";
+import { AuthLoading } from "../components/AuthLoading";
 // Icons
 // Style
 import "./pages.css";
@@ -45,6 +46,10 @@ const LoginPage = () => {
   const [pageState, setPageState] = useState<
     (typeof PageState)[keyof typeof PageState]
   >(PageState.Login);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [resetRequestLoading, setResetRequestLoading] = useState(false);
+  const [verifyCodeLoading, setVerifyCodeLoading] = useState(false);
+  const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
   const navigate = useNavigate();
 
   const triggerShake = (setter: React.Dispatch<React.SetStateAction<boolean>>) => {
@@ -53,12 +58,14 @@ const LoginPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthLoading(true);
     const normalizedEmail = email.trim().toLowerCase();
     // custom email validation to avoid native popup
     const emailValid = normalizedEmail.includes("@");
     if (!emailValid) {
       // keep highlighted until next submit attempt
       setEmailShake(true);
+      setAuthLoading(false);
       return;
     } else if (emailShake) {
       // clear highlight only on submit when email becomes valid
@@ -76,16 +83,19 @@ const LoginPage = () => {
       // Trigger shake animation on password input
       triggerShake(setPwShake);
     }
+    setAuthLoading(false);
   };
 
   const handlePasswordResetRequest = async (e: React.FormEvent) => {
     e.preventDefault();
+    setResetRequestLoading(true);
     const normalizedEmail = email.trim().toLowerCase();
     // validate email before calling API
     const emailValid = normalizedEmail.includes("@");
     if (!emailValid) {
       // keep highlighted until next submit attempt
       setEmailShake(true);
+      setResetRequestLoading(false);
       return;
     } else if (emailShake) {
       // clear highlight only on submit when email becomes valid
@@ -102,11 +112,14 @@ const LoginPage = () => {
       }
     } catch (err) {
       triggerShake(setEmailShake);
+    } finally {
+      setResetRequestLoading(false);
     }
   };
 
   const checkVerificationCode = async (e: React.FormEvent) => {
     e.preventDefault();
+    setVerifyCodeLoading(true);
     const normalizedEmail = email.trim().toLowerCase();
     try {
       if (verificationCode && verificationCode.length === 6) {
@@ -125,34 +138,40 @@ const LoginPage = () => {
       }
     } catch (err) {
       setCodeShake(true);
+    } finally {
+      setVerifyCodeLoading(false);
     }
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    setResetPasswordLoading(true);
     const normalizedEmail = email.trim().toLowerCase();
     setFormError("");
     // Validate code
     if (!verificationCode) {
       setFormError("Verification code missing. Please request a new one.");
+      setResetPasswordLoading(false);
       return;
     }
     // Validate password rules
     if (!checkIfValidPassword(newPassword)) {
-  setFormError("Password does not meet requirements.");
-  setNewPwShake(true);
+      setFormError("Password does not meet requirements.");
+      setNewPwShake(true);
+      setResetPasswordLoading(false);
       return;
     }
     // Validate match
     if (newPassword !== confirmPassword) {
-  setFormError("Passwords do not match.");
-  setConfirmPwShake(true);
+      setFormError("Passwords do not match.");
+      setConfirmPwShake(true);
+      setResetPasswordLoading(false);
       return;
     }
 
     try {
-  if (newPwShake) setNewPwShake(false);
-  if (confirmPwShake) setConfirmPwShake(false);
+      if (newPwShake) setNewPwShake(false);
+      if (confirmPwShake) setConfirmPwShake(false);
       const resultAction = await dispatch(
         resetPassword({
           email: normalizedEmail,
@@ -171,6 +190,8 @@ const LoginPage = () => {
       }
     } catch (err) {
       setFormError("Error resetting password. Please try again.");
+    } finally {
+      setResetPasswordLoading(false);
     }
   };
 
@@ -309,13 +330,17 @@ const LoginPage = () => {
                   </div>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                  <button
-                    type="submit"
-                    className="pill-button head-padding"
-                    style={{ width: "100%" }}
-                  >
-                    Login
-                  </button>
+                  {authLoading ? (
+                    <AuthLoading />
+                  ) : (
+                    <button
+                      type="submit"
+                      className="pill-button head-padding"
+                      style={{ width: "100%" }}
+                    >
+                      Login
+                    </button>
+                  )}
                   <OAuthLogin />
                 </div>
                 <p>
@@ -354,13 +379,17 @@ const LoginPage = () => {
                 aria-invalid={emailShake || undefined}
               />
               </div>
-              <button
-                type="submit"
-                className="pill-button head-padding"
-                style={{ width: "100%" }}
-              >
-                Send Reset Link
-              </button>
+              {resetRequestLoading ? (
+                <AuthLoading />
+              ) : (
+                <button
+                  type="submit"
+                  className="pill-button head-padding"
+                  style={{ width: "100%" }}
+                >
+                  Send Reset Link
+                </button>
+              )}
             </form>
           )}
           {pageState === PageState.ForgotPasswordCode && (
@@ -382,17 +411,29 @@ const LoginPage = () => {
                 }}
                 className="head-padding"
               >
-                <button type="submit" className="pill-button" style={{ width: "50%" }}>
-                  Verify Code
-                </button>
-                <button
-                  type="button"
-                  className="pill-button"
-                  style={{ width: "50%" }}
-                  onClick={handlePasswordResetRequest}
-                >
-                  Resend Code
-                </button>
+                {resetRequestLoading ? (
+                  <AuthLoading />
+                ) : (
+                  <button
+                    type="button"
+                    className="pill-button"
+                    style={{ width: "50%" }}
+                    onClick={handlePasswordResetRequest}
+                  >
+                    Resend Code
+                  </button>
+                )}
+                {verifyCodeLoading ? (
+                  <AuthLoading />
+                ) : (
+                  <button
+                    type="submit"
+                    className="pill-button"
+                    style={{ width: "50%" }}
+                  >
+                    Verify Code
+                  </button>
+                )}
               </div>
             </form>
           )}
@@ -454,13 +495,17 @@ const LoginPage = () => {
                   Passwords match
                 </div>
               </div>
-              <button
-                type="submit"
-                className="pill-button"
-                style={{ width: "100%" }}
-              >
-                Reset Password
-              </button>
+              {resetPasswordLoading ? (
+                <AuthLoading />
+              ) : (
+                <button
+                  type="submit"
+                  className="pill-button"
+                  style={{ width: "100%" }}
+                >
+                  Reset Password
+                </button>
+              )}
               {formError && <p style={{ color: "red" }}>{formError}</p>}
             </form>
           )}

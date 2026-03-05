@@ -9,7 +9,7 @@ import OAuthLogin from "../components/OAuthGoogle";
 import PasswordToggle from "../components/PasswordToggle";
 import VerificationCodeInput from "../components/VerificationCodeInput";
 import ParticlesBackground from "../components/ParticlesBackground";
-
+import { AuthLoading } from "../components/AuthLoading";
 
 const SignupPage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -21,6 +21,8 @@ const SignupPage = () => {
   const [verifyAccount, setVerifyAccount] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
+  const [signupLoading, setSignupLoading] = useState(false);
+  const [verifyLoading, setVerifyLoading] = useState(false);
   const [passwordValidations, setPasswordValidations] = useState({
     length: false,
     upper: false,
@@ -73,13 +75,17 @@ const SignupPage = () => {
         setError("Please enter the verification code.");
         return;
       }
-      // TODO: Add verification logic here
-      const result = await dispatch(verify({ email, code: verificationCode, rememberMe }));
-      if (result.meta.requestStatus === 'fulfilled') {
-        navigate("/timer");
-      }
-      else {
-        setError("Incorrect Code Please try again");
+      setVerifyLoading(true);
+      try {
+        const result = await dispatch(verify({ email, code: verificationCode, rememberMe }));
+        if (result.meta.requestStatus === 'fulfilled') {
+          navigate("/timer");
+        }
+        else {
+          setError("Incorrect Code Please try again");
+        }
+      } finally {
+        setVerifyLoading(false);
       }
     } else {
       // Handle signup submission
@@ -88,6 +94,7 @@ const SignupPage = () => {
         return;
       }
       try {
+        setSignupLoading(true);
         const normalizedEmail = email.trim().toLowerCase();
         const result = await dispatch(signup({ email: normalizedEmail, password }));
         
@@ -105,6 +112,8 @@ const SignupPage = () => {
         } else {
           setError("Signup failed. Try again.");
         }
+      } finally {
+        setSignupLoading(false);
       }
     }
   };
@@ -212,34 +221,46 @@ const SignupPage = () => {
                   id="button-group"
                   style={{ display: "flex", justifyContent: "center", gap: "0.5rem" }}
                 >
-                  <button
-                    type="submit"
-                    disabled={!verificationCode.trim()}
-                    className="pill-button"
-                    style={{ width: "50%" }}
-                  >
-                    Verify Code
-                  </button>
-                  <button
-                    type="button"
-                    className="pill-button"
-                    style={{ width: "50%" }}
-                    onClick={handleResendVerification}
-                    disabled={resendLoading}
-                  >
-                    {resendLoading ? "Sending..." : "Resend Code"}
-                  </button>
+                  {resendLoading ? (
+                    <AuthLoading />
+                  ) : (
+                    <button
+                      type="button"
+                      className="pill-button"
+                      style={{ width: "50%" }}
+                      onClick={handleResendVerification}
+                      disabled={resendLoading}
+                    >
+                      Resend Code
+                    </button>
+                  )}
+                  {verifyLoading ? (
+                    <AuthLoading />
+                  ) : (
+                    <button
+                      type="submit"
+                      disabled={!verificationCode.trim()}
+                      className="pill-button"
+                      style={{ width: "50%" }}
+                    >
+                      Verify Code
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                  <button
-                    type="submit"
-                    disabled={!checkIfValidPassword(password)}
-                    className="pill-button text-nowrap head-padding"
-                  style={{ width: "100%" }}
-                >
-                  Create Account
-                </button>
+                  {signupLoading ? (
+                    <AuthLoading />
+                  ) : (
+                    <button
+                      type="submit"
+                      disabled={!checkIfValidPassword(password)}
+                      className="pill-button text-nowrap head-padding"
+                      style={{ width: "100%" }}
+                    >
+                      Create Account
+                    </button>
+                  )}
                 <OAuthLogin />
                 </div>
               )}
